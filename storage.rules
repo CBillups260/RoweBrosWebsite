@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// Craft rules based on your security requirements
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow read access to all files
+    match /{allPaths=**} {
+      allow read;
+      allow write: if request.auth != null;
+    }
+    
+    // Product images can be managed by staff
+    match /products/{productId}/{allImages=**} {
+      allow read;
+      allow write: if request.auth != null && 
+        exists(/databases/$(database)/documents/staff/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == 'Active';
+    }
+  }
+}

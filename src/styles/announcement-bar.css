@@ -1,0 +1,41 @@
+/* Announcement Bar Styles */
+.announcement-bar {
+  background-color: #0D47A1;
+  color: white;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.announcement-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.announcement-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.announcement-content svg {
+  font-size: 0.8rem;
+  margin-right: 0.25rem;
+}
+
+.announcement-content a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.announcement-content a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .announcement-content {
+    justify-content: center;
+  }
+}

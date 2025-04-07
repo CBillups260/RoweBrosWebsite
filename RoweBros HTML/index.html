@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoweBros Party Rentals</title>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="announcement-bar">
+        <div class="announcement-container">
+            <div class="announcement-content">
+                <i class="fas fa-phone-alt"></i> Need help? Call us at <a href="tel:5743438522">(574) 343-8522</a>
+            </div>
+        </div>
+    </div>
+    
+    <header>
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="images/logo.png" alt="RoweBros Party Rentals Logo" class="logo">
+                <div class="motto">We bring the party to you!</div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#featured-rentals">Rentals</a></li>
+                    <li><a href="#packages">Party Packages</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li class="location-dropdown">
+                        <button class="location-button">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="current-location">Angola</span>
+                            <i class="fas fa-chevron-down arrow-icon"></i>
+                        </button>
+                        <div class="location-menu">
+                            <div class="location-header">Select Your Location</div>
+                            <div class="location-options">
+                                <a href="#" class="location-option active" data-location="angola">
+                                    <i class="fas fa-map-pin"></i>
+                                    <div class="location-details">
+                                        <span class="location-name">Angola</span>
+                                        <span class="location-address">123 Main St, Angola, IN</span>
+                                    </div>
+                                </a>
+                                <a href="#" class="location-option" data-location="elkhart">
+                                    <i class="fas fa-map-pin"></i>
+                                    <div class="location-details">
+                                        <span class="location-name">Elkhart</span>
+                                        <span class="location-address">456 Park Ave, Elkhart, IN</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                    <li><a href="#contact-form" class="nav-button">Start Your Order <i class="fas fa-shopping-cart"></i></a></li>
+                    <li class="cart-icon-container">
+                        <div class="cart-icon" id="cartToggle">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="cart-count">3</span>
+                        </div>
+                        <div class="cart-dropdown">
+                            <div class="cart-header">
+                                <h4>Your Cart</h4>
+                                <button class="close-cart"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="cart-items">
+                                <div class="cart-item">
+                                    <img src="images/pink-mga-768x768.png" alt="Pink Mega Bounce House">
+                                    <div class="cart-item-details">
+                                        <h5>Pink Mega Bounce House</h5>
+                                        <p class="cart-item-price">$150.00</p>
+                                        <div class="cart-item-date">Apr 15, 2025</div>
+                                    </div>
+                                    <button class="remove-item"><i class="fas fa-trash"></i></button>
+                                </div>
+                                <div class="cart-item">
+                                    <img src="images/mega-marble-slide-768x768.png" alt="Mega Marble Slide">
+                                    <div class="cart-item-details">
+                                        <h5>Mega Marble Slide</h5>
+                                        <p class="cart-item-price">$225.00</p>
+                                        <div class="cart-item-date">Apr 15, 2025</div>
+                                    </div>
+                                    <button class="remove-item"><i class="fas fa-trash"></i></button>
+                                </div>
+                                <div class="cart-item">
+                                    <img src="images/sports-combo-300x242.png" alt="Sports Combo Bouncer">
+                                    <div class="cart-item-details">
+                                        <h5>Sports Combo Bouncer</h5>
+                                        <p class="cart-item-price">$175.00</p>
+                                        <div class="cart-item-date">Apr 15, 2025</div>
+                                    </div>
+                                    <button class="remove-item"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                            <div class="cart-footer">
+                                <div class="cart-total">
+                                    <span>Total:</span>
+                                    <span class="total-amount">$550.00</span>
+                                </div>
+                                <a href="#checkout" class="checkout-button">Checkout</a>
+                                <a href="#cart" class="view-cart-button">View Full Cart</a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section id="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h2>Make Your Next Event Unforgettable!</h2>
+                    <p>From bounce houses to water slides, we have everything you need to create the perfect party experience for kids of all ages.</p>
+                    <div class="hero-cta">
+                        <a href="#featured-rentals" class="cta-button">Explore Our Rentals</a>
+                        <a href="#packages" class="cta-button secondary">View Party Packages</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="images/Hero Bounce House.png" alt="Colorful Bounce House">
+                </div>
+            </div>
+        </section>
+
+        <section id="featured-rentals">
+            <h3>Check Out Our Most Popular Rentals!</h3>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="bounce">Bounce Houses</button>
+                <button class="filter-btn" data-filter="water">Water Slides</button>
+                <button class="filter-btn" data-filter="obstacle">Obstacle Courses</button>
+            </div>
+            <div class="rental-grid">
+                <div class="rental-item" data-category="bounce">
+                    <div class="ribbon">Popular</div>
+                    <div class="rental-image-container">
+                        <img src="images/pink-mga-768x768.png" alt="Pink Mega Bounce House" class="rental-image">
+                        <button class="quick-view-btn"><i class="fas fa-search-plus"></i> Quick View</button>
+                    </div>
+                    <h4>Pink Mega Bounce House</h4>
+                    <p class="price">$150/day</p>
+                    <p>Classic fun for all ages. Perfect for birthdays!</p>
+                    <div class="rental-details">
+                        <span><i class="fas fa-ruler"></i> 15' x 15'</span>
+                        <span><i class="fas fa-child"></i> Ages 3-12</span>
+                        <span><i class="fas fa-users"></i> Up to 8 kids</span>
+                    </div>
+                    <a href="#" class="details-button">View Details</a>
+                    <div class="expanded-info">
+                        <div class="expanded-info-content">
+                            <h5>Pink Mega Bounce House</h5>
+                            <p>This vibrant pink bounce house is perfect for princess parties and birthday celebrations. Features include:</p>
+                            <ul>
+                                <li>Safety entrance with step</li>
+                                <li>Mesh windows for ventilation and visibility</li>
+                                <li>Reinforced stitching for durability</li>
+                                <li>Easy setup and takedown (30 minutes)</li>
+                            </ul>
+                            <div class="expanded-specs">
+                                <div class="spec-item">
+                                    <i class="fas fa-weight"></i>
+                                    <span>Max Weight: 500 lbs</span>
+                                </div>
+                                <div class="spec-item">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Power: Standard outlet</span>
+                                </div>
+                                <div class="spec-item">
+                                    <i class="fas fa-truck"></i>
+                                    <span>Delivery included</span>
+                                </div>
+                            </div>
+                            <button class="close-expanded"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="rental-item" data-category="water">
+                    <div class="rental-image-container">
+                        <img src="images/mega-marble-slide-768x768.png" alt="Mega Marble Slide" class="rental-image">
+                        <button class="quick-view-btn"><i class="fas fa-search-plus"></i> Quick View</button>
+                    </div>
+                    <h4>Mega Marble Slide</h4>
+                    <p class="price">$225/day</p>
+                    <p>Beat the heat with this exciting water slide.</p>
+                    <div class="rental-details">
+                        <span><i class="fas fa-ruler"></i> 18' x 30'</span>
+                        <span><i class="fas fa-child"></i> Ages 5-15</span>
+                        <span><i class="fas fa-users"></i> Up to 12 kids</span>
+                    </div>
+                    <a href="#" class="details-button">View Details</a>
+                    <div class="expanded-info">
+                        <div class="expanded-info-content">
+                            <h5>Mega Marble Slide</h5>
+                            <p>This massive water slide brings the water park to your backyard! Features include:</p>
+                            <ul>
+                                <li>Climbing wall with safety handles</li>
+                                <li>Extra-wide sliding surface</li>
+                                <li>Splash pool at the bottom</li>
+                                <li>Includes water hookup and blower</li>
+                            </ul>
+                            <div class="expanded-specs">
+                                <div class="spec-item">
+                                    <i class="fas fa-weight"></i>
+                                    <span>Max Weight: 800 lbs</span>
+                                </div>
+                                <div class="spec-item">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Power: Standard outlet</span>
+                                </div>
+                                <div class="spec-item">
+                                    <i class="fas fa-truck"></i>
+                                    <span>Delivery included</span>
+                                </div>
+                            </div>
+                            <button class="close-expanded"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="rental-item" data-category="obstacle">
+                    <div class="rental-image-container">
+                        <img src="images/rainbow-mega-1-768x683.png" alt="Rainbow Mega Obstacle Course" class="rental-image">
+                        <button class="quick-view-btn"><i class="fas fa-search-plus"></i> Quick View</button>
+                    </div>
+                    <h4>Rainbow Mega Course</h4>
+                    <p class="price">$275/day</p>
+                    <p>Challenge your friends on this huge course!</p>
+                    <div class="rental-details">
+                        <span><i class="fas fa-ruler"></i> 35' x 12'</span>
+                        <span><i class="fas fa-child"></i> Ages 6-16</span>
+                        <span><i class="fas fa-users"></i> Up to 10 kids</span>
+                    </div>
+                    <a href="#" class="details-button">View Details</a>
+                    <div class="expanded-info">
+                        <div class="expanded-info-content">
+                            <h5>Rainbow Mega Course</h5>
+                            <p>This colorful obstacle course is perfect for competitive fun! Features include:</p>
+                            <ul>
+                                <li>Multiple challenging obstacles</li>
+                                <li>Dual racing lanes</li>
+                                <li>Climbing wall and slide finish</li>
+                                <li>Perfect for competitions and races</li>
+                            </ul>
+                            <div class="expanded-specs">
+                                <div class="spec-item">
+                                    <i class="fas fa-weight"></i>
+                                    <span>Max Weight: 1000 lbs</span>
+                                </div>
+                                <div class="spec-item">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Power: Two outlets</span>
+                                </div>
+                                <div class="spec-item">
+                                    <i class="fas fa-truck"></i>
+                                    <span>Delivery included</span>
+                                </div>
+                            </div>
+                            <button class="close-expanded"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="rental-item" data-category="bounce">
+                    <div class="rental-image-container">
+                        <img src="images/sports-combo-300x242.png" alt="Sports Combo Bounce House" class="rental-image">
+                        <button class="quick-view-btn"><i class="fas fa-search-plus"></i> Quick View</button>
+                    </div>
+                    <h4>Sports Combo Bouncer</h4>
+                    <p class="price">$175/day</p>
+                    <p>Sports-themed bounce house for active kids!</p>
+                    <div class="rental-details">
+                        <span><i class="fas fa-ruler"></i> 15' x 15'</span>
+                        <span><i class="fas fa-child"></i> Ages 4-12</span>
+                        <span><i class="fas fa-users"></i> Up to 8 kids</span>
+                    </div>
+                    <a href="#" class="details-button">View Details</a>
+                    <div class="expanded-info">
+                        <div class="expanded-info-content">
+                            <h5>Sports Combo Bouncer</h5>
+                            <p>Perfect for sports fans and athletic-themed parties! Features include:</p>
+                            <ul>
+                                <li>Basketball hoop inside</li>
+                                <li>Sports-themed graphics</li>
+                                <li>Extra bouncy floor</li>
+                                <li>Safety entrance with basketball design</li>
+                            </ul>
+                            <div class="expanded-specs">
+                                <div class="spec-item">
+                                    <i class="fas fa-weight"></i>
+                                    <span>Max Weight: 500 lbs</span>
+                                </div>
+                                <div class="spec-item">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Power: Standard outlet</span>
+                                </div>
+                                <div class="spec-item">
+                                    <i class="fas fa-truck"></i>
+                                    <span>Delivery included</span>
+                                </div>
+                            </div>
+                            <button class="close-expanded"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="view-all-container">
+                <a href="#" class="view-all-button">View All Rentals <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </section>
+
+        <section id="packages">
+            <h3>Party Packages</h3>
+            <p class="section-subtitle">Complete solutions for your special event</p>
+            <div class="packages-container">
+                <div class="package-card">
+                    <div class="package-header">
+                        <h4>Basic Birthday</h4>
+                        <p class="package-price">$299</p>
+                    </div>
+                    <div class="package-body">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Standard Bounce House (4 hours)</li>
+                            <li><i class="fas fa-check"></i> Table & 10 Chairs</li>
+                            <li><i class="fas fa-check"></i> Basic Party Supplies</li>
+                            <li><i class="fas fa-check"></i> Setup & Takedown</li>
+                            <li><i class="fas fa-times"></i> Concessions</li>
+                            <li><i class="fas fa-times"></i> Party Host</li>
+                        </ul>
+                        <a href="#" class="package-button">Book This Package</a>
+                    </div>
+                </div>
+                <div class="package-card featured">
+                    <div class="package-badge">Most Popular</div>
+                    <div class="package-header">
+                        <h4>Deluxe Party</h4>
+                        <p class="package-price">$499</p>
+                    </div>
+                    <div class="package-body">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Premium Bounce House (4 hours)</li>
+                            <li><i class="fas fa-check"></i> 2 Tables & 20 Chairs</li>
+                            <li><i class="fas fa-check"></i> Deluxe Party Supplies</li>
+                            <li><i class="fas fa-check"></i> Popcorn Machine</li>
+                            <li><i class="fas fa-check"></i> Cotton Candy Machine</li>
+                            <li><i class="fas fa-check"></i> Setup & Takedown</li>
+                        </ul>
+                        <a href="#" class="package-button">Book This Package</a>
+                    </div>
+                </div>
+                <div class="package-card">
+                    <div class="package-header">
+                        <h4>Ultimate Celebration</h4>
+                        <p class="package-price">$799</p>
+                    </div>
+                    <div class="package-body">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Bounce House & Water Slide Combo (6 hours)</li>
+                            <li><i class="fas fa-check"></i> 3 Tables & 30 Chairs</li>
+                            <li><i class="fas fa-check"></i> Premium Party Supplies</li>
+                            <li><i class="fas fa-check"></i> All Concessions Included</li>
+                            <li><i class="fas fa-check"></i> Party Host & Assistant</li>
+                            <li><i class="fas fa-check"></i> Party Games & Activities</li>
+                        </ul>
+                        <a href="#" class="package-button">Book This Package</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="why-choose-us">
+            <h3>Why Choose RoweBros?</h3>
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Safe & Clean</h4>
+                    <p>All units are thoroughly cleaned and sanitized before every rental.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h4>Reliable Delivery</h4>
+                    <p>Professional, on-time delivery and setup service.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h4>Great Selection</h4>
+                    <p>A wide variety of inflatables and party essentials.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">
+                        <i class="fas fa-thumbs-up"></i>
+                    </div>
+                    <h4>Top Service</h4>
+                    <p>Friendly, helpful staff dedicated to making your event a success.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="testimonials">
+            <h3>What Our Customers Say</h3>
+            <div class="testimonial-container">
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        <i class="fas fa-quote-left"></i>
+                        <p>RoweBros made my daughter's 8th birthday absolutely perfect! The castle bounce house was a hit, and their staff was so professional and friendly.</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="images/testimonial1.jpg" alt="Sarah M." class="testimonial-image">
+                        <div>
+                            <h4>Sarah M.</h4>
+                            <div class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        <i class="fas fa-quote-left"></i>
+                        <p>We rented the water slide for our neighborhood block party and it was amazing! Setup was quick, everything was clean, and the kids had a blast all day.</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="images/testimonial2.jpg" alt="John D." class="testimonial-image">
+                        <div>
+                            <h4>John D.</h4>
+                            <div class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        <i class="fas fa-quote-left"></i>
+                        <p>The Deluxe Party Package was worth every penny! Having the concessions included made planning so much easier, and the kids loved everything!</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="images/testimonial3.jpg" alt="Lisa T." class="testimonial-image">
+                        <div>
+                            <h4>Lisa T.</h4>
+                            <div class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works">
+            <h3>Booking is Easy!</h3>
+            <ol class="steps">
+                <li>
+                    <span>1</span>
+                    <div class="step-icon"><i class="fas fa-search"></i></div>
+                    Browse our selection online.
+                </li>
+                <li>
+                    <span>2</span>
+                    <div class="step-icon"><i class="fas fa-calendar-check"></i></div>
+                    Check availability & book your date.
+                </li>
+                <li>
+                    <span>3</span>
+                    <div class="step-icon"><i class="fas fa-truck-loading"></i></div>
+                    We deliver, set up, and take down!
+                </li>
+                <li>
+                    <span>4</span>
+                    <div class="step-icon"><i class="fas fa-smile-beam"></i></div>
+                    Enjoy your amazing party!
+                </li>
+            </ol>
+        </section>
+
+        <section id="faq">
+            <h3>Frequently Asked Questions</h3>
+            <div class="faq-container">
+                <!-- Initial visible FAQs -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h4>Does the price include set up and delivery?</h4>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes, although additional fees may apply for areas farther out. Remember prices do not include sales tax.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h4>Does the standard 4 hour rental time include your set up time?</h4>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No. We arrive early to set up so you get the entire rental time to play.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h4>Do we have to keep it plugged in the entire time?</h4>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes. A blower keeps air in the jump unit the entire time. Once unplugged they deflate. That's why we require an outlet within 50 feet of the unit or a generator. Longer cords can pop your circuit breaker so we bring our own heavy duty cords.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h4>How big are the jumps?</h4>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Most of our jumps (all of our character jumps for example) are 15'x15' which is a little bigger than many companies rent. Please note the space required for each jump (listed near the large picture) as some are VERY big and require extra space. When in doubt, measure your space to make sure it will fit.</p>
+                    </div>
+                </div>
+                
+                <div class="show-more-container">
+                    <button id="show-more-faq" class="show-more-button">
+                        <span>Show More FAQs</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                
+                <!-- Hidden FAQs -->
+                <div class="hidden-faqs" style="display: none;">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>Do you deliver to other cities?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes, but once again please be aware that due to rising gas prices and the possible need for an extra truck and labor that travel fees can be quite high. Please call our office for a current quote.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>When do you set up?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>That depends on how many rentals we have that day. Generally we arrive 1-3 hours before the rental time begins. If we have a lot of rentals that day, we may need to set up as early as 4 hours in advance. If this is the case, we will call the Friday before to confirm that someone will be at the party location.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>We've rented some really dirty jumps from other companies in the past. Are they always that dirty?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>No. The jump should be clean when you get it. Rowe Bros Party Rentals cleans and disinfects after every rental.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>What about parks? Do parks have electricity?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>We love setting up at parks but most parks do NOT have electricity. If you want to set up at a park, you must rent a generator. We rent generators at a reasonable cost. Also, parks are first come, first serve so get your spot early in the day.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>What payments do you take?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Cash or Credit Cards. If paying by cash, please have exact change as our drivers do not carry cash.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>What if we need to cancel?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Please check out our policies page for details.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>Do you require a deposit?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes all orders require a $50 Credit Card deposit. The are fully refundable if you cancel your order at least 8 days prior to your rental date. If you cancel between 2-7 days prior to your rental you will be given a rain check that is good for 1 year.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>What about the big jumps? Any special requirements?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Check the requirements listed with each jump. Also, make sure you have at least a 4 feet of access to the area where it will be set up. The jumps can weigh up to 650 pounds so we need a clear path with ample room.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>What surfaces do you set up on?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>We can set up on Grass (our favorite and best for the kids), dirt, asphalt, and concrete. Sorry, we can't set up on any type of rocks as the constant rubbing will wear through the vinyl jumps.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>Can we see a copy of your contract and safety rules?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes. There is a link in your receipt once you've ordered or you may contact our office.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>Are we responsible for the unit if it gets a tear or damaged in any way?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes and no. You are not responsible for normal wear and tear on our units. Seams may develop tears in high traffic areas over a period of time. If this happens please alert us at once so we can remedy the situation. If however, damage occurs due to failure to follow our safety rules or negligence (i.e. not turning off the blower in high winds) you will be responsible for all damages up to and including replacement of the unit/blower etc which can cost thousands of dollars. We don't want you or us to be in that situation which is why we have you sign and initial on all of our safety rules so that you can be the trained operator.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="show-less-container">
+                        <button id="show-less-faq" class="show-less-button">
+                            <span>Show Less</span>
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="booking-calendar">
+            <h3>Book Your Party Today!</h3>
+            <p class="section-subtitle">Check availability and reserve your date</p>
+            <div class="booking-container">
+                <div class="booking-content">
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <button id="prevMonth" class="month-nav"><i class="fas fa-chevron-left"></i></button>
+                            <h4 id="currentMonth">April 2025</h4>
+                            <button id="nextMonth" class="month-nav"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="weekdays">
+                            <div>Sun</div>
+                            <div>Mon</div>
+                            <div>Tue</div>
+                            <div>Wed</div>
+                            <div>Thu</div>
+                            <div>Fri</div>
+                            <div>Sat</div>
+                        </div>
+                        <div class="calendar-days" id="calendarDays">
+                            <!-- Calendar days will be generated by JavaScript -->
+                        </div>
+                        <div class="calendar-legend">
+                            <div class="legend-item"><span class="available"></span> Available</div>
+                            <div class="legend-item"><span class="limited"></span> Limited Availability</div>
+                            <div class="legend-item"><span class="booked"></span> Fully Booked</div>
+                        </div>
+                        <div class="popular-dates">
+                            <h5>Popular Party Dates</h5>
+                            <div class="popular-date-tags">
+                                <span class="date-tag">Apr 15 - School Break</span>
+                                <span class="date-tag">Apr 22 - Weekend Special</span>
+                                <span class="date-tag">May 5 - Holiday Weekend</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-booking-wrapper">
+                        <div class="booking-form">
+                            <h4>Quick Reservation</h4>
+                            <form id="quick-booking-form">
+                                <div class="form-group">
+                                    <label for="event-date">Event Date</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <input type="text" id="event-date" placeholder="Select a date" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="event-type">Event Type</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-birthday-cake"></i>
+                                        <select id="event-type">
+                                            <option value="">Select event type</option>
+                                            <option value="birthday">Birthday Party</option>
+                                            <option value="school">School Event</option>
+                                            <option value="corporate">Corporate Event</option>
+                                            <option value="church">Church Event</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="guest-count">Number of Guests</label>
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-users"></i>
+                                            <input type="number" id="guest-count" placeholder="# of guests" min="1">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="event-duration">Duration (hours)</label>
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-clock"></i>
+                                            <select id="event-duration">
+                                                <option value="4">4 hours</option>
+                                                <option value="6">6 hours</option>
+                                                <option value="8">8 hours</option>
+                                                <option value="custom">Custom</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Rental Items</label>
+                                    <div class="rental-checkboxes">
+                                        <div class="rental-checkbox">
+                                            <input type="checkbox" id="bounce-house" name="rental-items" value="bounce-house">
+                                            <label for="bounce-house">Bounce House</label>
+                                        </div>
+                                        <div class="rental-checkbox">
+                                            <input type="checkbox" id="water-slide" name="rental-items" value="water-slide">
+                                            <label for="water-slide">Water Slide</label>
+                                        </div>
+                                        <div class="rental-checkbox">
+                                            <input type="checkbox" id="obstacle-course" name="rental-items" value="obstacle-course">
+                                            <label for="obstacle-course">Obstacle Course</label>
+                                        </div>
+                                        <div class="rental-checkbox">
+                                            <input type="checkbox" id="party-package" name="rental-items" value="party-package">
+                                            <label for="party-package">Party Package</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contact-info">Your Contact Info</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="contact-info" placeholder="Email or phone number">
+                                    </div>
+                                </div>
+                                <button type="submit" class="booking-submit">Check Availability</button>
+                            </form>
+                        </div>
+                        
+                        <div class="contact-info">
+                            <h4>Contact Us</h4>
+                            <div class="contact-method">
+                                <i class="fas fa-phone"></i>
+                                <div>
+                                    <h5>Call Us</h5>
+                                    <p>(555) 123-4567</p>
+                                </div>
+                            </div>
+                            <div class="contact-method">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <h5>Email Us</h5>
+                                    <p>info@rowebrosrentals.com</p>
+                                </div>
+                            </div>
+                            <div class="contact-method">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <div>
+                                    <h5>Visit Us</h5>
+                                    <p>123 Party Lane<br>Funtown, CA 12345</p>
+                                </div>
+                            </div>
+                            <div class="contact-hours">
+                                <h5>Business Hours</h5>
+                                <p>Monday-Friday: 9am - 6pm<br>
+                                Saturday: 10am - 4pm<br>
+                                Sunday: Closed</p>
+                            </div>
+                            <div class="booking-benefits">
+                                <div class="benefit-item">
+                                    <i class="fas fa-truck"></i>
+                                    <span>Free Delivery</span>
+                                </div>
+                                <div class="benefit-item">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <span>Safety Certified</span>
+                                </div>
+                                <div class="benefit-item">
+                                    <i class="fas fa-smile"></i>
+                                    <span>100% Fun Guaranteed</span>
+                                </div>
+                            </div>
+                            <div class="social-links">
+                                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="cta">
+            <h2>Ready to Party?</h2>
+            <p>Check availability and book your rentals today!</p>
+            <a href="#contact-form" class="cta-button">Book Now</a>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-column">
+                <img src="images/logo.png" width="100" alt="RoweBros Party Rentals" class="footer-logo">
+                <p>Making parties unforgettable since 2018. Family-owned and operated in the greater Funtown area.</p>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#featured-rentals">Rentals</a></li>
+                    <li><a href="#packages">Party Packages</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="#contact-form">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Rental Categories</h4>
+                <ul>
+                    <li><a href="#">Bounce Houses</a></li>
+                    <li><a href="#">Water Slides</a></li>
+                    <li><a href="#">Obstacle Courses</a></li>
+                    <li><a href="#">Concessions</a></li>
+                    <li><a href="#">Tables & Chairs</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Service Areas</h4>
+                <ul>
+                    <li>Funtown</li>
+                    <li>Partyville</li>
+                    <li>Celebration City</li>
+                    <li>Bounce Heights</li>
+                    <li>And surrounding areas</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 RoweBros Party Rentals. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Sitemap</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+        
+    <script>
+        // Filter functionality for rentals
+        document.addEventListener('DOMContentLoaded', function() {
+            // Header scroll effect
+            const header = document.querySelector('header');
+            let lastScrollTop = 0;
+            
+            window.addEventListener('scroll', function() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Add/remove scrolled class based on scroll position
+                if (scrollTop > 50) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+                
+                lastScrollTop = scrollTop;
+            });
+            
+            // Calendar Functionality
+            const calendarDays = document.getElementById('calendarDays');
+            const currentMonthElement = document.getElementById('currentMonth');
+            const prevMonthButton = document.getElementById('prevMonth');
+            const nextMonthButton = document.getElementById('nextMonth');
+            const eventDateInput = document.getElementById('event-date');
+            
+            let currentDate = new Date();
+            let selectedDate = null;
+            
+            // Sample availability data (in a real app, this would come from a database)
+            const availabilityData = {
+                '2025-04-01': 'available',
+                '2025-04-02': 'available',
+                '2025-04-03': 'limited',
+                '2025-04-04': 'limited',
+                '2025-04-05': 'booked',
+                '2025-04-06': 'booked',
+                '2025-04-07': 'available',
+                '2025-04-08': 'available',
+                '2025-04-09': 'available',
+                '2025-04-10': 'limited',
+                '2025-04-11': 'limited',
+                '2025-04-12': 'booked',
+                '2025-04-13': 'booked',
+                '2025-04-14': 'available',
+                '2025-04-15': 'available',
+                '2025-04-16': 'available',
+                '2025-04-17': 'limited',
+                '2025-04-18': 'limited',
+                '2025-04-19': 'booked',
+                '2025-04-20': 'booked',
+                '2025-04-21': 'available',
+                '2025-04-22': 'available',
+                '2025-04-23': 'available',
+                '2025-04-24': 'limited',
+                '2025-04-25': 'limited',
+                '2025-04-26': 'booked',
+                '2025-04-27': 'booked',
+                '2025-04-28': 'available',
+                '2025-04-29': 'available',
+                '2025-04-30': 'available',
+            };
+            
+            // Generate calendar
+            function generateCalendar(year, month) {
+                calendarDays.innerHTML = '';
+                
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                const startingDay = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                
+                // Update month display
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                currentMonthElement.textContent = `${monthNames[month]} ${year}`;
+                
+                // Add days from previous month
+                const prevMonthLastDay = new Date(year, month, 0).getDate();
+                for (let i = startingDay - 1; i >= 0; i--) {
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day', 'other-month');
+                    dayElement.textContent = prevMonthLastDay - i;
+                    calendarDays.appendChild(dayElement);
+                }
+                
+                // Add days of current month
+                const today = new Date();
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day');
+                    dayElement.textContent = i;
+                    
+                    // Check if this is today
+                    if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
+                        dayElement.classList.add('today');
+                    }
+                    
+                    // Check availability
+                    const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    if (availabilityData[dateString]) {
+                        dayElement.classList.add(availabilityData[dateString]);
+                    } else {
+                        dayElement.classList.add('available'); // Default to available
+                    }
+                    
+                    // Check if this is the selected date
+                    if (selectedDate && year === selectedDate.getFullYear() && month === selectedDate.getMonth() && i === selectedDate.getDate()) {
+                        dayElement.classList.add('selected');
+                    }
+                    
+                    // Add click event
+                    dayElement.addEventListener('click', function() {
+                        // Don't allow selecting booked dates
+                        if (dayElement.classList.contains('booked')) {
+                            return;
+                        }
+                        
+                        // Remove selected class from all days
+                        document.querySelectorAll('.calendar-day').forEach(day => {
+                            day.classList.remove('selected');
+                        });
+                        
+                        // Add selected class to this day
+                        dayElement.classList.add('selected');
+                        
+                        // Update selected date
+                        selectedDate = new Date(year, month, i);
+                        
+                        // Update input field
+                        const formattedDate = `${monthNames[month]} ${i}, ${year}`;
+                        eventDateInput.value = formattedDate;
+                        
+                        // Add a subtle animation to the form
+                        const bookingForm = document.querySelector('.booking-form');
+                        bookingForm.classList.add('date-selected');
+                        setTimeout(() => {
+                            bookingForm.classList.remove('date-selected');
+                        }, 500);
+                    });
+                    
+                    calendarDays.appendChild(dayElement);
+                }
+                
+                // Add days from next month to fill the grid
+                const totalDaysDisplayed = calendarDays.childElementCount;
+                const daysToAdd = 42 - totalDaysDisplayed; // 6 rows x 7 days = 42
+                
+                for (let i = 1; i <= daysToAdd; i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day', 'other-month');
+                    dayElement.textContent = i;
+                    calendarDays.appendChild(dayElement);
+                }
+            }
+            
+            // Initialize calendar
+            generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+            
+            // Previous month button
+            prevMonthButton.addEventListener('click', function() {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+            });
+            
+            // Next month button
+            nextMonthButton.addEventListener('click', function() {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                generateCalendar(currentDate.getFullYear(), currentDate.getMonth());
+            });
+            
+            // Form submission
+            const quickBookingForm = document.getElementById('quick-booking-form');
+            quickBookingForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // In a real application, you would send this data to a server
+                // For now, just show an alert
+                alert('Thank you! We will check availability and contact you shortly.');
+                
+                // Reset form
+                quickBookingForm.reset();
+                selectedDate = null;
+                
+                // Remove selected class from all days
+                document.querySelectorAll('.calendar-day').forEach(day => {
+                    day.classList.remove('selected');
+                });
+            });
+            
+            // Filter buttons
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const rentalItems = document.querySelectorAll('.rental-item');
+            
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterBtns.forEach(btn => btn.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const filterValue = this.getAttribute('data-filter');
+                    
+                    rentalItems.forEach(item => {
+                        if (filterValue === 'all' || item.getAttribute('data-category') === filterValue) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // Quick View functionality
+            const quickViewBtns = document.querySelectorAll('.quick-view-btn');
+            const closeExpandedBtns = document.querySelectorAll('.close-expanded');
+            
+            quickViewBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const parentItem = this.closest('.rental-item');
+                    const expandedInfo = parentItem.querySelector('.expanded-info');
+                    expandedInfo.classList.add('active');
+                    
+                    // Prevent scrolling on body when expanded info is open
+                    document.body.style.overflow = 'hidden';
+                });
+            });
+            
+            closeExpandedBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const expandedInfo = this.closest('.expanded-info');
+                    expandedInfo.classList.remove('active');
+                    
+                    // Re-enable scrolling
+                    document.body.style.overflow = 'auto';
+                });
+            });
+            
+            // Close expanded info when clicking outside
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('expanded-info')) {
+                    e.target.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+            
+            // Location Dropdown functionality
+            const locationButton = document.querySelector('.location-button');
+            const locationDropdown = document.querySelector('.location-dropdown');
+            const locationOptions = document.querySelectorAll('.location-option');
+            const currentLocation = document.querySelector('.current-location');
+            
+            // Toggle dropdown when clicking the button
+            locationButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                locationDropdown.classList.toggle('active');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!locationDropdown.contains(e.target)) {
+                    locationDropdown.classList.remove('active');
+                }
+            });
+            
+            // Change location when clicking an option
+            locationOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all options
+                    locationOptions.forEach(opt => opt.classList.remove('active'));
+                    
+                    // Add active class to clicked option
+                    this.classList.add('active');
+                    
+                    // Update current location text
+                    const locationName = this.querySelector('.location-name').textContent;
+                    currentLocation.textContent = locationName;
+                    
+                    // Close dropdown
+                    locationDropdown.classList.remove('active');
+                    
+                    // Add a subtle animation to the button
+                    locationButton.classList.add('updated');
+                    setTimeout(() => {
+                        locationButton.classList.remove('updated');
+                    }, 1000);
+                });
+            });
+            
+            // Cart Toggle functionality
+            const cartToggle = document.getElementById('cartToggle');
+            const cartDropdown = document.querySelector('.cart-dropdown');
+            const closeCart = document.querySelector('.close-cart');
+            
+            cartToggle.addEventListener('click', function() {
+                cartDropdown.classList.toggle('active');
+                this.classList.add('bounce');
+                
+                // Remove bounce animation after it completes
+                setTimeout(() => {
+                    this.classList.remove('bounce');
+                }, 800);
+            });
+            
+            closeCart.addEventListener('click', function() {
+                cartDropdown.classList.remove('active');
+            });
+            
+            // Close cart when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!cartToggle.contains(e.target) && !cartDropdown.contains(e.target)) {
+                    cartDropdown.classList.remove('active');
+                }
+            });
+            
+            // Remove item functionality
+            const removeButtons = document.querySelectorAll('.remove-item');
+            
+            removeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const cartItem = this.closest('.cart-item');
+                    cartItem.style.opacity = '0';
+                    cartItem.style.height = '0';
+                    cartItem.style.margin = '0';
+                    cartItem.style.padding = '0';
+                    cartItem.style.transition = 'all 0.3s ease';
+                    
+                    setTimeout(() => {
+                        cartItem.remove();
+                        updateCartCount();
+                        updateCartTotal();
+                    }, 300);
+                });
+            });
+            
+            // Update cart count
+            function updateCartCount() {
+                const cartItems = document.querySelectorAll('.cart-item');
+                const cartCount = document.querySelector('.cart-count');
+                cartCount.textContent = cartItems.length;
+                
+                if (cartItems.length === 0) {
+                    const emptyMessage = document.createElement('div');
+                    emptyMessage.className = 'empty-cart-message';
+                    emptyMessage.textContent = 'Your cart is empty';
+                    emptyMessage.style.padding = '20px';
+                    emptyMessage.style.textAlign = 'center';
+                    emptyMessage.style.color = '#999';
+                    
+                    const cartItemsContainer = document.querySelector('.cart-items');
+                    cartItemsContainer.innerHTML = '';
+                    cartItemsContainer.appendChild(emptyMessage);
+                }
+            }
+            
+            // Update cart total
+            function updateCartTotal() {
+                const cartItems = document.querySelectorAll('.cart-item');
+                let total = 0;
+                
+                cartItems.forEach(item => {
+                    const priceText = item.querySelector('.cart-item-price').textContent;
+                    const price = parseFloat(priceText.replace('$', ''));
+                    total += price;
+                });
+                
+                const totalAmount = document.querySelector('.total-amount');
+                totalAmount.textContent = '$' + total.toFixed(2);
+            }
+            
+            // Show more FAQs functionality
+            const showMoreButton = document.getElementById('show-more-faq');
+            const hiddenFAQs = document.querySelector('.hidden-faqs');
+            
+            showMoreButton.addEventListener('click', function() {
+                hiddenFAQs.style.display = 'block';
+                this.style.display = 'none';
+            });
+            
+            // Show less FAQs functionality
+            const showLessButton = document.getElementById('show-less-faq');
+            
+            showLessButton.addEventListener('click', function() {
+                hiddenFAQs.style.display = 'none';
+                showMoreButton.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

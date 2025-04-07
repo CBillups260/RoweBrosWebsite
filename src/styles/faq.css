@@ -1,0 +1,126 @@
+/* FAQ Section */
+#faq {
+    padding: 4rem 0;
+}
+
+#faq h3 {
+    text-align: center;
+    color: var(--primary);
+    margin-bottom: 2rem;
+}
+
+.faq-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.faq-item {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.faq-question {
+    padding: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.faq-question:hover {
+    background-color: rgba(30, 136, 229, 0.05);
+}
+
+.faq-question h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--dark);
+    line-height: 1.4;
+    padding-right: 1rem;
+}
+
+.faq-question i {
+    font-size: 1rem;
+    color: var(--primary);
+    transition: all 0.3s ease;
+}
+
+.faq-item.active .faq-question i {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+.faq-item.active .faq-answer {
+    padding: 0 1.2rem 1.2rem;
+    max-height: 1000px;
+}
+
+.faq-answer p {
+    margin: 0;
+    color: #555;
+}
+
+/* Show More/Less FAQ Buttons */
+.show-more-container, 
+.show-less-container {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+.show-more-button,
+.show-less-button {
+    background-color: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 1rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+}
+
+.show-more-button:hover,
+.show-less-button:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(30, 136, 229, 0.3);
+}
+
+.show-more-button i,
+.show-less-button i {
+    font-size: 0.9rem;
+}
+
+.hidden-faqs {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

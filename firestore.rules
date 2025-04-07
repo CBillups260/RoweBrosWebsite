@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Function to check if user has a specific permission
+    function hasPermission(permission) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/staff/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == 'Active' &&
+        (
+          // Check direct permissions array if it exists
+          (exists(/databases/$(database)/documents/staff/$(request.auth.uid)).data.permissions) && 
+          (permission in get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.permissions)
+        ) || (
+          // Or check role-based permissions
+          exists(/databases/$(database)/documents/roles/$(get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.roleId)) &&
+          (permission in get(/databases/$(database)/documents/roles/$(get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.roleId)).data.permissions)
+        );
+    }
+    
+    // Function to check if user is an admin
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/staff/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == 'Active' &&
+        (
+          get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role == 'Admin' ||
+          hasPermission('manage_staff') // Admin has manage_staff permission
+        );
+    }
+    
+    // Function to check if user is any staff member
+    function isStaff() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/staff/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == 'Active';
+    }
+    
+    // Products collection rules
+    match /products/{productId} {
+      allow read: if true; // Anyone can read products
+      allow create, update: if hasPermission('manage_products');
+      allow delete: if hasPermission('manage_products');
+    }
+    
+    // Categories collection rules
+    match /categories/{categoryId} {
+      allow read: if true; // Anyone can read categories
+      allow write: if hasPermission('manage_categories');
+    }
+    
+    // Orders collection rules
+    match /orders/{orderId} {
+      allow read: if true; // Customers need to see their own orders
+      allow create: if isAuthenticated(); // Authenticated users can create orders
+      allow update, delete: if hasPermission('manage_orders');
+    }
+    
+    // Staff collection rules
+    match /staff/{staffId} {
+      // Allow read during authentication process
+      allow read: if isAuthenticated();
+      allow create, delete: if hasPermission('manage_staff');
+      allow update: if hasPermission('manage_staff') || request.auth.uid == staffId; // Staff can update their own profile
+    }
+    
+    // Roles collection rules
+    match /roles/{roleId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if hasPermission('manage_roles');
+    }
+    
+    // Users collection rules
+    match /users/{userId} {
+      // Allow read during authentication process
+      allow read: if isAuthenticated();
+      allow write: if request.auth.uid == userId || isAdmin(); // Users can write their own data, admins can write any user data
+    }
+    
+    // Default rule - deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

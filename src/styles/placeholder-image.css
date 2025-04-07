@@ -1,0 +1,36 @@
+.placeholder-image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #cccccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.placeholder-image svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Remove any potential border styling that might be causing the yellow line */
+.placeholder-image svg rect,
+.placeholder-image svg polygon,
+.placeholder-image svg circle {
+  stroke: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

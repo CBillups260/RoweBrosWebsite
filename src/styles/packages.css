@@ -1,0 +1,138 @@
+/* Party Packages Section */
+#packages {
+    padding: 4rem 0;
+    background-color: var(--light);
+}
+
+#packages h3 {
+    text-align: center;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+}
+
+.section-subtitle {
+    text-align: center;
+    color: #555;
+    margin-bottom: 3rem;
+    font-size: 1.2rem;
+}
+
+.packages-container {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    flex-wrap: wrap;
+}
+
+.package-card {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    width: 100%;
+    max-width: 350px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.package-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.package-card.featured {
+    border: 3px solid var(--accent);
+    transform: scale(1.05);
+}
+
+.package-card.featured:hover {
+    transform: scale(1.05) translateY(-10px);
+}
+
+.package-badge {
+    position: absolute;
+    top: 1.5rem;
+    right: -3rem;
+    background-color: var(--accent);
+    color: white;
+    padding: 0.5rem 3rem;
+    transform: rotate(45deg);
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.package-header {
+    background-color: var(--primary);
+    padding: 2rem;
+    text-align: center;
+    color: white;
+}
+
+.package-header h4 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.package-price {
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+.package-body {
+    padding: 2rem;
+}
+
+.package-body ul {
+    margin-bottom: 2rem;
+}
+
+.package-body li {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.package-body li i {
+    font-size: 1.2rem;
+}
+
+.package-body li i.fa-check {
+    color: #4CAF50;
+}
+
+.package-body li i.fa-times {
+    color: #F44336;
+}
+
+.package-button {
+    background-color: var(--primary);
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: block;
+    font-family: 'Luckiest Guy', cursive;
+    letter-spacing: 0.5px;
+}
+
+.package-button:hover {
+    background-color: var(--dark);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(30, 136, 229, 0.3);
+}
+
+.package-card.featured .package-button {
+    background-color: var(--accent);
+}
+
+.package-card.featured .package-button:hover {
+    background-color: #0091ea;
+}

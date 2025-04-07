@@ -1,0 +1,324 @@
+/* Featured Rentals Section */
+.featured-rentals {
+    padding: 4rem 2rem;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.featured-rentals-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.featured-rentals h2 {
+    font-size: 2.5rem;
+    color: var(--dark);
+    margin-bottom: 2rem;
+    position: relative;
+    display: inline-block;
+}
+
+.featured-rentals h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background-color: var(--primary);
+    border-radius: 2px;
+}
+
+#featured-rentals {
+    padding: 4rem 0;
+    background-color: white;
+}
+
+#featured-rentals h3 {
+    text-align: center;
+    color: var(--primary);
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+}
+
+.filter-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background-color: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    padding: 0.6rem 1.5rem;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.filter-btn:hover, .filter-btn.active {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(30, 136, 229, 0.2);
+}
+
+.featured-rentals-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 992px) {
+  .featured-rentals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .featured-rentals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Rental Cards */
+.rental-card {
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+  position: relative;
+}
+
+.rental-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.ribbon {
+  position: absolute;
+  top: 20px;
+  left: -30px;
+  background-color: #1E88E5;
+  color: white;
+  padding: 5px 30px;
+  transform: rotate(-45deg);
+  font-weight: 600;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+.rental-image {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  height: 200px;
+}
+
+.rental-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.rental-card:hover .rental-image img {
+  transform: scale(1.05);
+}
+
+.view-details {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(30, 136, 229, 0.9);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.rental-card:hover .view-details {
+  opacity: 1;
+}
+
+.rental-info {
+  padding: 15px;
+}
+
+.rental-info h4 {
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.price {
+  color: #1E88E5;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.rental-info p {
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.expanded-info {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.expanded-info.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.expanded-info-content {
+    background-color: white;
+    border-radius: 15px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    position: relative;
+    animation: zoomIn 0.3s ease-out;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.expanded-info-content h5 {
+    color: var(--primary);
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.expanded-info-content p {
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.expanded-info-content ul {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+.expanded-info-content li {
+    color: #555;
+    margin-bottom: 0.5rem;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.expanded-info-content li:before {
+    content: '•';
+    color: var(--primary);
+    position: absolute;
+    left: 0;
+    font-size: 1.2rem;
+}
+
+.expanded-specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+    background-color: var(--light);
+    padding: 1.5rem;
+    border-radius: 10px;
+}
+
+.spec-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.spec-item i {
+    color: var(--primary);
+    font-size: 1.2rem;
+}
+
+.close-expanded {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: transparent;
+    border: none;
+    color: #777;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.close-expanded:hover {
+    color: var(--primary);
+    transform: rotate(90deg);
+}
+
+.view-all-container {
+    text-align: center;
+    margin-top: 3rem;
+}
+
+.view-all-button {
+    background-color: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    padding: 1rem 2rem;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Luckiest Guy', cursive;
+    letter-spacing: 0.5px;
+}
+
+.view-all-button:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(30, 136, 229, 0.3);
+}
+
+.view-all-button i {
+    transition: all 0.3s ease;
+}
+
+.view-all-button:hover i {
+    transform: translateX(5px);
+}

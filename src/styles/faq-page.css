@@ -1,0 +1,241 @@
+/* FAQ Page Styles */
+.faq-page-container {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.faq-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.category-button {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  background: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  font-size: 1rem;
+  font-weight: 500;
+  color: #444;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-button:hover {
+  background-color: #f5f9ff;
+  transform: translateX(3px);
+}
+
+.category-button.active {
+  background-color: #1E88E5;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.25);
+}
+
+.faq-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+}
+
+.faq-category-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.faq-category-title svg {
+  color: #1E88E5;
+  font-size: 1.5rem;
+}
+
+.faq-category-title h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.faq-item {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.faq-item.active {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #1E88E5;
+}
+
+.faq-question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem;
+  cursor: pointer;
+  background-color: #f9f9f9;
+  transition: background-color 0.2s ease;
+}
+
+.faq-item.active .faq-question {
+  background-color: #e3f2fd;
+}
+
+.faq-question:hover {
+  background-color: #f0f0f0;
+}
+
+.faq-item.active .faq-question:hover {
+  background-color: #d6eafc;
+}
+
+.faq-question h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  padding-right: 1rem;
+}
+
+.faq-icon {
+  color: #1E88E5;
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.faq-item.active .faq-icon {
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  padding: 0 1.5rem;
+  background-color: white;
+}
+
+.faq-answer p {
+  margin: 1.5rem 0;
+  line-height: 1.6;
+  color: #555;
+}
+
+.faq-contact-info {
+  text-align: center;
+  padding: 2.5rem;
+  background-color: #f7f9fc;
+  border-radius: 10px;
+  margin-top: 2rem;
+}
+
+.faq-contact-info h3 {
+  margin-top: 0;
+  color: #1E88E5;
+  font-size: 1.5rem;
+}
+
+.faq-contact-info p {
+  margin-bottom: 1.5rem;
+  color: #666;
+}
+
+.faq-contact-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.contact-button,
+.phone-button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.contact-button {
+  background-color: #1E88E5;
+  color: white;
+}
+
+.contact-button:hover {
+  background-color: #1976D2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.25);
+}
+
+.phone-button {
+  background-color: white;
+  color: #1E88E5;
+  border: 1px solid #1E88E5;
+}
+
+.phone-button:hover {
+  background-color: #f5f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Styles */
+@media (max-width: 992px) {
+  .faq-page-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .faq-categories {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .category-button {
+    white-space: nowrap;
+    padding: 0.8rem 1.2rem;
+  }
+  
+  .category-button:hover {
+    transform: translateY(-3px);
+  }
+  
+  .category-button.active {
+    transform: translateY(-3px);
+  }
+  
+  .faq-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .faq-question h3 {
+    font-size: 1rem;
+  }
+  
+  .faq-contact-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .contact-button,
+  .phone-button {
+    width: 100%;
+    text-align: center;
+  }
+}

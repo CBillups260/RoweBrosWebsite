@@ -1,0 +1,142 @@
+.contact-us-section {
+  padding: 5rem 0;
+  background-color: #f9f9fa;
+  position: relative;
+}
+
+.contact-us-section .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.contact-us-section .section-title {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.contact-us-section .section-title:after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background-color: #1E88E5;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.contact-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.contact-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.contact-icon {
+  font-size: 2.5rem;
+  color: #1E88E5;
+  margin-bottom: 1.5rem;
+}
+
+.contact-card h3 {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.contact-card p {
+  color: #666;
+  margin-bottom: 0;
+}
+
+.contact-card a {
+  color: #1E88E5;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contact-card a:hover {
+  color: #1565C0;
+  text-decoration: underline;
+}
+
+.contact-card address {
+  font-style: normal;
+  color: #666;
+  line-height: 1.6;
+}
+
+.contact-card .hours {
+  line-height: 1.6;
+}
+
+.guarantees {
+  display: flex;
+  justify-content: center;
+  gap: 4rem;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background-color: #1E88E5;
+  border-radius: 10px;
+  color: white;
+}
+
+.guarantee-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.guarantee-item svg {
+  font-size: 1.75rem;
+}
+
+.map-container {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+  .contact-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .guarantees {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+  
+  .contact-us-section .section-title {
+    font-size: 2rem;
+  }
+}
