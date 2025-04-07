@@ -1,0 +1,19 @@
+# Netlify Environment Variables Setup Guide
+
+To properly deploy your React app with Firebase authentication on Netlify, follow these steps:
+
+1. In your Netlify dashboard, go to Site settings > Build & deploy > Environment
+
+2. Add the following environment variables:
+
+REACT_APP_FIREBASE_API_KEY=AIzaSyAk5w3jWyXf070Z-gDK4lEzYjgbTikSVFk
+REACT_APP_FIREBASE_AUTH_DOMAIN=rowebros-156a6.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=rowebros-156a6
+REACT_APP_FIREBASE_STORAGE_BUCKET=rowebros-156a6.firebasestorage.app
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=944129578600
+REACT_APP_FIREBASE_APP_ID=1:944129578600:web:cd3d7be9df5dc256d98ddd
+REACT_APP_FIREBASE_MEASUREMENT_ID=G-5FZYDXKQ2V
+
+3. After setting these variables, trigger a new deploy of your site.
+
+Note: This approach makes your application more secure and flexible by keeping configuration separate from code.
