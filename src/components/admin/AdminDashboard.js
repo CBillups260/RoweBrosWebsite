@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faBox, 
@@ -9,8 +9,7 @@ import {
   faShoppingBag,
   faSignOutAlt,
   faTachometerAlt,
-  faUserCircle,
-  faUserShield
+  faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../context/AuthContext';
 import ProductsSection from './ProductsSection';
@@ -20,12 +19,11 @@ import SalesSection from './SalesSection';
 import OrdersSection from './OrdersSection';
 import DashboardOverview from './DashboardOverview';
 import { ensureDefaultRolesExist } from '../../services/roleService';
-import { hasPermission } from '../../services/authService';
 import '../../styles/admin-dashboard.css';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const { currentUser, logout, isAdmin } = useAuth();
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [rolesInitialized, setRolesInitialized] = useState(false);
   
@@ -67,16 +65,6 @@ const AdminDashboard = () => {
     }
   };
   
-  // Check if user has a specific permission
-  const checkPermission = (permission) => {
-    // Temporarily return true for all permissions until we fix the permissions issue
-    return true;
-    
-    // The proper implementation would be:
-    // return currentUser && currentUser.permissions && 
-    //        currentUser.permissions.includes(permission);
-  };
-  
   // Render the active section based on the selected tab
   const renderActiveSection = () => {
     if (!rolesInitialized) {
@@ -100,14 +88,6 @@ const AdminDashboard = () => {
         return <DashboardOverview />;
     }
   };
-  
-  // Access denied component
-  const AccessDenied = () => (
-    <div className="access-denied">
-      <h2>Access Denied</h2>
-      <p>You don't have permission to access this section.</p>
-    </div>
-  );
   
   return (
     <div className="admin-dashboard-container">

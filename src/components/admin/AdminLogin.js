@@ -19,7 +19,7 @@ import {
   signInWithPopup
 } from 'firebase/auth';
 import { auth } from '../../firebase';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 const AdminLogin = () => {
@@ -129,32 +129,26 @@ const AdminLogin = () => {
       
       // Check if staff is active
       if (staffData.status !== 'Active') {
-        setError('Your account is inactive. Please contact an administrator.');
+        setError('Your account is not active. Please contact an administrator.');
         setLoading(false);
-        // Sign out since this account is inactive
+        // Sign out since this is not an active account
         await auth.signOut();
         return;
       }
       
-      // Store user information in localStorage for persistence
-      localStorage.setItem('userEmail', result.user.email);
-      localStorage.setItem('userName', result.user.displayName);
-      localStorage.setItem('userPhoto', result.user.photoURL || '');
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('isStaff', 'true');
-      localStorage.setItem('staffRole', staffData.role || 'Staff');
-      
-      console.log('Google sign-in successful for admin', result.user);
-      
-      // Redirect to admin dashboard
-      navigate('/admin');
+      // Redirect to the intended page or dashboard
+      const from = location.state?.from?.pathname || '/admin';
+      navigate(from, { replace: true });
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      console.error('Google login error:', error);
       
+      // Set appropriate error message
       if (error.code === 'auth/popup-closed-by-user') {
-        setError('Sign-in was cancelled');
+        setError('Login cancelled. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        setError('Pop-up blocked by browser. Please allow pop-ups for this site.');
       } else {
-        setError('Failed to sign in with Google. Please try again.');
+        setError(error.message || 'Failed to log in with Google. Please try again.');
       }
       
       setLoading(false);

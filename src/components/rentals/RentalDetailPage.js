@@ -12,13 +12,11 @@ import {
   faArrowLeft,
   faShoppingCart,
   faStar,
-  faCheck,
-  faInfoCircle
+  faCheck
 } from '@fortawesome/free-solid-svg-icons';
 import { useCart } from '../../context/CartContext';
 import PlaceholderImage from '../common/PlaceholderImage';
-import { getProductById } from '../../services/productService';
-import { getProducts } from '../../services/productService';
+import { getProductById, getProducts } from '../../services/productService';
 import { getCategoryById } from '../../services/categoryService';
 import '../../styles/rental-detail.css';
 
