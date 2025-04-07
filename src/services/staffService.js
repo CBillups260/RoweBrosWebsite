@@ -15,7 +15,8 @@ import {
   getAuth, 
   createUserWithEmailAndPassword, 
   updateProfile, 
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  deleteUser
 } from 'firebase/auth';
 import { db } from '../firebase';
 

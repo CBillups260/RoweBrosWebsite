@@ -12,7 +12,8 @@ import {
   faArrowLeft,
   faShoppingCart,
   faStar,
-  faCheck
+  faCheck,
+  faInfoCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { useCart } from '../../context/CartContext';
 import PlaceholderImage from '../common/PlaceholderImage';

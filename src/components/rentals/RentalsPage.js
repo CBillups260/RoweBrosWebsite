@@ -8,7 +8,8 @@ import {
   faSortAmountUp,
   faShoppingCart,
   faCheck,
-  faTimes
+  faTimes,
+  faChevronDown
 } from '@fortawesome/free-solid-svg-icons';
 import { useCart } from '../../context/CartContext';
 import PlaceholderImage from '../common/PlaceholderImage';
