@@ -24,14 +24,23 @@ const extractPriceNumeric = (priceString) => {
 const cartReducer = (state, action) => {
   switch (action.type) {
     case ADD_TO_CART: {
-      const { item, date } = action.payload;
+      const { item, bookingInfo } = action.payload;
+      
+      // Extract date and time from bookingInfo
+      const { date, time } = bookingInfo;
+      
+      // Format date to ISO string for consistent storage
+      const formattedDate = date instanceof Date ? date.toISOString() : date;
+      
+      // Create a unique booking identifier that includes both date and time
+      const bookingId = `${formattedDate}|${time}`;
       
       // Extract numeric price from price string (e.g., "$150/day" -> 150)
       const priceNumeric = extractPriceNumeric(item.price);
       
-      // Check if item with same id and date already exists in cart
+      // Check if item with same id and booking info already exists in cart
       const existingItemIndex = state.items.findIndex(
-        cartItem => cartItem.id === item.id && cartItem.date === date
+        cartItem => cartItem.id === item.id && cartItem.bookingId === bookingId
       );
       
       if (existingItemIndex >= 0) {
@@ -51,7 +60,9 @@ const cartReducer = (state, action) => {
         // If item doesn't exist, add it to cart
         const newItem = {
           ...item,
-          date,
+          date: formattedDate,
+          time,
+          bookingId,
           quantity: 1,
           priceNumeric
         };
@@ -66,11 +77,11 @@ const cartReducer = (state, action) => {
     }
     
     case REMOVE_FROM_CART: {
-      const { id, date } = action.payload;
+      const { id, bookingId } = action.payload;
       
       // Find the item to remove
       const itemToRemove = state.items.find(
-        item => item.id === id && item.date === date
+        item => item.id === id && item.bookingId === bookingId
       );
       
       if (!itemToRemove) return state;
@@ -80,7 +91,7 @@ const cartReducer = (state, action) => {
       
       // Filter out the item
       const updatedItems = state.items.filter(
-        item => !(item.id === id && item.date === date)
+        item => !(item.id === id && item.bookingId === bookingId)
       );
       
       return {
@@ -92,11 +103,11 @@ const cartReducer = (state, action) => {
     }
     
     case UPDATE_QUANTITY: {
-      const { id, date, quantity } = action.payload;
+      const { id, bookingId, quantity } = action.payload;
       
       // Find the item to update
       const itemIndex = state.items.findIndex(
-        item => item.id === id && item.date === date
+        item => item.id === id && item.bookingId === bookingId
       );
       
       if (itemIndex === -1) return state;
@@ -166,26 +177,26 @@ export const CartProvider = ({ children }) => {
   }, [cart]);
   
   // Add item to cart
-  const addToCart = (item, date) => {
+  const addToCart = (item, bookingInfo) => {
     dispatch({
       type: ADD_TO_CART,
-      payload: { item, date }
+      payload: { item, bookingInfo }
     });
   };
   
   // Remove item from cart
-  const removeFromCart = (id, date) => {
+  const removeFromCart = (id, bookingId) => {
     dispatch({
       type: REMOVE_FROM_CART,
-      payload: { id, date }
+      payload: { id, bookingId }
     });
   };
   
   // Update item quantity
-  const updateQuantity = (id, date, quantity) => {
+  const updateQuantity = (id, bookingId, quantity) => {
     dispatch({
       type: UPDATE_QUANTITY,
-      payload: { id, date, quantity }
+      payload: { id, bookingId, quantity }
     });
   };
   

@@ -188,6 +188,21 @@
   font-size: 0.95rem;
 }
 
+.cart-item-booking {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+  font-size: 14px;
+  color: #000;
+}
+
+.cart-item-date,
+.cart-item-time {
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+}
+
 .cart-item-date {
   font-size: 0.8rem;
   color: #666;
@@ -754,5 +769,9 @@ body.cart-open .cart-drawer {
   
   .empty-cart-icon {
     font-size: 2rem;
+  }
+  
+  .cart-item-booking {
+    font-size: 13px;
   }
 }

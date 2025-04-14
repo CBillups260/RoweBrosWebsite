@@ -25,6 +25,11 @@ firestore-debug.log
 firebase-export
 *.cache
 
-# environment variables
+# Stripe and Firebase credentials
+serviceAccountKey.json
+server/serviceAccountKey.json
 .env
+.env.local
+
+# environment variables
 .env.*
