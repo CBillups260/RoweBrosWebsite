@@ -34,6 +34,11 @@ const Testimonials = () => {
     }
   ];
 
+  // Default placeholder image from the public folder
+  const getDefaultPlaceholder = (initial) => {
+    return `/images/placeholders/default-avatar.png`;
+  };
+
   return (
     <section className="testimonials-section" id="testimonials">
       <div className="container">
@@ -54,7 +59,8 @@ const Testimonials = () => {
                   className="testimonial-image"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = "https://via.placeholder.com/60x60?text=" + testimonial.author.charAt(0);
+                    // Use local placeholder image instead of external service
+                    e.target.src = getDefaultPlaceholder(testimonial.author.charAt(0));
                   }}
                 />
                 <div>

@@ -1,4 +1,4 @@
-import { STRIPE_PUBLISHABLE_KEY, CURRENCY } from '../config/stripe-config';
+import stripeConfig from '../config/stripe-config';
 import { loadStripe } from '@stripe/stripe-js';
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -7,7 +7,7 @@ import { db } from '../firebase';
 let stripePromise;
 export const getStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
+    stripePromise = loadStripe(stripeConfig.publishableKey);
   }
   return stripePromise;
 };
@@ -19,7 +19,7 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
     const lineItems = cart.items.map(item => {
       return {
         price_data: {
-          currency: CURRENCY,
+          currency: stripeConfig.currency || 'usd',
           product_data: {
             name: item.name,
             images: item.mainImage ? [item.mainImage] : [],
@@ -38,7 +38,7 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
     // Add delivery fee as a separate line item
     lineItems.push({
       price_data: {
-        currency: CURRENCY,
+        currency: stripeConfig.currency || 'usd',
         product_data: {
           name: 'Delivery Fee',
           description: `Delivery to ${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.state} ${deliveryInfo.zipCode}`,
