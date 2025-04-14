@@ -1,6 +1,6 @@
 // Script to sync products from Firebase to Stripe
 const admin = require('firebase-admin');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_51RD23eR969oyjXsRFjXI9XF2zw9tyyMJ0I76DgrY1ou730xT8EvEJiH7WT7IrzgpCJl2SMsQyH23IhelENJ3hdFK00H3JTidKO');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || '');
 
 // Initialize Firebase Admin
 const serviceAccount = require('../serviceAccountKey.json');
