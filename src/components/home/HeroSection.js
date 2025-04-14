@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+// Import the image directly
+import heroImage from '../../assets/hero-bounce-house.png';
 
 const HeroSection = () => {
   return (
@@ -19,7 +21,11 @@ const HeroSection = () => {
           <div className="decoration star3"></div>
           <div className="decoration circle1"></div>
           <div className="decoration circle2"></div>
-          <img src="/images/Hero Bounce House.png" alt="Colorful Bounce House" />
+          <img 
+            src="/images/hero-bounce-house.png" 
+            alt="Colorful Bounce House" 
+            style={{maxWidth: '100%', height: 'auto', zIndex: 2}}
+          />
         </div>
       </div>
     </section>
