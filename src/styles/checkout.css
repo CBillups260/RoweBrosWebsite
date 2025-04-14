@@ -377,6 +377,254 @@
   text-decoration: underline;
 }
 
+/* Pre-selected fields */
+.pre-selected-field {
+  position: relative;
+  width: 100%;
+}
+
+.pre-filled-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  color: #000; /* Black text for proper visibility */
+  background-color: #f8f8f8;
+  transition: all 0.3s ease;
+}
+
+.pre-filled-input:disabled,
+.pre-filled-input:read-only {
+  background-color: #f0f7f0;
+  border-color: #4CAF50;
+  color: #000; /* Black text for proper visibility */
+  cursor: not-allowed;
+}
+
+.pre-selected-badge {
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  background-color: #4CAF50;
+  color: white;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pre-selected-badge svg {
+  font-size: 10px;
+}
+
+/* Review sections */
+.review-sections {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.review-section {
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+}
+
+.review-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #000;
+  font-size: 18px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.review-details p {
+  margin: 8px 0;
+  color: #000; /* Black text for proper visibility */
+}
+
+.review-details strong {
+  font-weight: 600;
+  color: #000; /* Black text for proper visibility */
+}
+
+/* Service Area Notice */
+.service-area-notice {
+  background-color: #f8f8f8;
+  border-left: 4px solid #4CAF50;
+  padding: 12px 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  color: #000; /* Black text for proper visibility */
+}
+
+.service-area-notice svg {
+  color: #4CAF50;
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.service-area-notice p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.field-note {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Disabled select styling */
+select:disabled {
+  background-color: #f0f7f0;
+  border-color: #4CAF50;
+  color: #000; /* Black text for proper visibility */
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Stripe Payment Form Styles */
+.stripe-payment-form {
+  width: 100%;
+}
+
+.card-element-container {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.card-element-container:hover {
+  border-color: #aaa;
+}
+
+.card-element-container:focus-within {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.card-security {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.card-security svg {
+  color: #4CAF50;
+  margin-right: 5px;
+}
+
+.secure-payment-note {
+  background-color: #f8f8f8;
+  border-left: 4px solid #4CAF50;
+  padding: 12px 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  color: #000; /* Black text for proper visibility */
+}
+
+.secure-payment-note svg {
+  color: #4CAF50;
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.payment-methods {
+  margin-top: 30px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.payment-method-title {
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: #000; /* Black text for proper visibility */
+}
+
+.payment-icons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.payment-icon {
+  height: 30px;
+  width: auto;
+}
+
+.payment-error {
+  background-color: #fff0f0;
+  border-left: 4px solid #ff3b30;
+  padding: 12px 15px;
+  margin: 20px 0;
+  border-radius: 4px;
+  color: #d32f2f;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.payment-error svg {
+  margin-right: 10px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.checkbox-container input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.checkbox-container label {
+  color: #000; /* Black text for proper visibility */
+  font-size: 14px;
+}
+
+/* Disable button styles */
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .payment-icons {
+    flex-wrap: wrap;
+  }
+  
+  .payment-icon {
+    height: 24px;
+  }
+  
+  .card-element-container {
+    padding: 14px 15px;
+  }
+}
+
 /* Order Confirmation Styles */
 .order-confirmation {
   background-color: white;
@@ -499,5 +747,15 @@
   .place-order-button {
     width: 100%;
     justify-content: center;
+  }
+  
+  .pre-selected-badge {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+  
+  .pre-filled-input {
+    padding: 14px 15px;
+    font-size: 16px; /* Larger for touch targets */
   }
 }

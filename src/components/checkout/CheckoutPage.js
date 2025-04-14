@@ -11,10 +11,123 @@ import {
   faPhone,
   faEnvelope,
   faTruck,
-  faCheck
+  faCheck,
+  faClock,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import { useCart } from '../../context/CartContext';
+import { Elements } from '@stripe/react-stripe-js';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { getStripe, createCheckoutSession } from '../../services/stripeService';
 import '../../styles/checkout.css';
+
+// Stripe Card Element styles
+const cardElementOptions = {
+  style: {
+    base: {
+      color: '#000',
+      fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+      fontSmoothing: 'antialiased',
+      fontSize: '16px',
+      '::placeholder': {
+        color: '#aab7c4'
+      }
+    },
+    invalid: {
+      color: '#fa755a',
+      iconColor: '#fa755a'
+    }
+  },
+  hidePostalCode: true
+};
+
+// Stripe Payment Form Component
+const StripePaymentForm = ({ paymentInfo, handlePaymentInfoChange, errors, onSubmit }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [cardError, setCardError] = useState('');
+  const [processing, setProcessing] = useState(false);
+
+  const handleCardChange = (event) => {
+    setCardError(event.error ? event.error.message : '');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!stripe || !elements) {
+      return;
+    }
+    
+    setProcessing(true);
+    
+    const cardElement = elements.getElement(CardElement);
+    
+    // Create payment method
+    const { error, paymentMethod } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+      billing_details: {
+        name: paymentInfo.cardHolder,
+      },
+    });
+    
+    if (error) {
+      setCardError(error.message);
+      setProcessing(false);
+      return;
+    }
+    
+    // Pass the payment method to the parent component
+    onSubmit(paymentMethod);
+    setProcessing(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="stripe-payment-form">
+      <div className="form-group full-width">
+        <label htmlFor="cardHolder">
+          <FontAwesomeIcon icon={faUser} /> Card Holder Name
+        </label>
+        <input
+          type="text"
+          id="cardHolder"
+          name="cardHolder"
+          value={paymentInfo.cardHolder}
+          onChange={handlePaymentInfoChange}
+          placeholder="Name on card"
+        />
+        {errors.cardHolder && <div className="input-error">{errors.cardHolder}</div>}
+      </div>
+      
+      <div className="form-group full-width">
+        <label htmlFor="card-element">
+          <FontAwesomeIcon icon={faCreditCard} /> Card Details
+        </label>
+        <div className="card-element-container">
+          <CardElement id="card-element" options={cardElementOptions} onChange={handleCardChange} />
+          <div className="card-security">
+            <FontAwesomeIcon icon={faLock} /> Secure payment
+          </div>
+        </div>
+        {cardError && <div className="input-error">{cardError}</div>}
+      </div>
+      
+      <div className="form-group">
+        <div className="checkbox-container">
+          <input
+            type="checkbox"
+            id="savePaymentInfo"
+            name="savePaymentInfo"
+            checked={paymentInfo.savePaymentInfo}
+            onChange={handlePaymentInfoChange}
+          />
+          <label htmlFor="savePaymentInfo">Save payment information for future orders</label>
+        </div>
+      </div>
+    </form>
+  );
+};
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -24,6 +137,24 @@ const CheckoutPage = () => {
   const [activeStep, setActiveStep] = useState(1);
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+  
+  // Define service areas
+  const serviceAreas = [
+    { city: 'Elkhart', state: 'IN', zip: '46514' },
+    { city: 'Elkhart', state: 'IN', zip: '46516' },
+    { city: 'Elkhart', state: 'IN', zip: '46517' },
+    { city: 'Angola', state: 'IN', zip: '46703' },
+    { city: 'Goshen', state: 'IN', zip: '46526' },
+    { city: 'Middlebury', state: 'IN', zip: '46540' },
+    { city: 'Bristol', state: 'IN', zip: '46507' },
+    { city: 'Mishawaka', state: 'IN', zip: '46544' },
+    { city: 'South Bend', state: 'IN', zip: '46601' },
+    { city: 'Sturgis', state: 'MI', zip: '49091' },
+    { city: 'Three Rivers', state: 'MI', zip: '49093' }
+  ];
   
   // Form states
   const [customerInfo, setCustomerInfo] = useState({
@@ -39,6 +170,7 @@ const CheckoutPage = () => {
     state: '',
     zipCode: '',
     deliveryDate: '',
+    deliveryTime: '',
     deliveryInstructions: ''
   });
   
@@ -80,6 +212,26 @@ const CheckoutPage = () => {
     // Check if cart is empty
     if (!cart || cart.items.length === 0) {
       navigate('/rentals');
+    } else {
+      // Pre-fill delivery date and time from cart items if available
+      const firstItem = cart.items[0];
+      if (firstItem) {
+        // Extract date from the first cart item
+        let bookingDate = '';
+        if (firstItem.date) {
+          const date = new Date(firstItem.date);
+          bookingDate = date.toISOString().split('T')[0];
+        }
+        
+        // Extract time from the first cart item
+        const bookingTime = firstItem.time || '';
+        
+        setDeliveryInfo(prev => ({
+          ...prev,
+          deliveryDate: bookingDate,
+          deliveryTime: bookingTime
+        }));
+      }
     }
   }, [location, navigate, cart, isGuest]);
 
@@ -101,12 +253,33 @@ const CheckoutPage = () => {
   
   const handleDeliveryInfoChange = (e) => {
     const { name, value } = e.target;
-    setDeliveryInfo({
+    
+    // Create updated delivery info
+    const updatedDeliveryInfo = {
       ...deliveryInfo,
       [name]: value
-    });
+    };
     
-    // Clear error when user starts typing
+    // If city is changed, automatically set the state based on the selected city
+    if (name === 'city' && value) {
+      const selectedCity = serviceAreas.find(area => area.city === value);
+      if (selectedCity) {
+        updatedDeliveryInfo.state = selectedCity.state;
+      }
+    }
+    
+    // If zipCode is changed, make sure city and state are consistent
+    if (name === 'zipCode' && value) {
+      const selectedArea = serviceAreas.find(area => area.zip === value);
+      if (selectedArea) {
+        updatedDeliveryInfo.city = selectedArea.city;
+        updatedDeliveryInfo.state = selectedArea.state;
+      }
+    }
+    
+    setDeliveryInfo(updatedDeliveryInfo);
+    
+    // Clear error for this field if it exists
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -145,19 +318,15 @@ const CheckoutPage = () => {
     if (step === 2) {
       if (!deliveryInfo.address) newErrors.address = 'Address is required';
       if (!deliveryInfo.city) newErrors.city = 'City is required';
-      if (!deliveryInfo.state) newErrors.state = 'State is required';
+      // Don't validate state since it's auto-selected based on city
       if (!deliveryInfo.zipCode) newErrors.zipCode = 'ZIP code is required';
       if (!deliveryInfo.deliveryDate) newErrors.deliveryDate = 'Delivery date is required';
+      if (!deliveryInfo.deliveryTime) newErrors.deliveryTime = 'Delivery time is required';
     }
     
     if (step === 3) {
       if (!paymentInfo.cardHolder) newErrors.cardHolder = 'Card holder name is required';
-      if (!paymentInfo.cardNumber) newErrors.cardNumber = 'Card number is required';
-      else if (paymentInfo.cardNumber.replace(/\s/g, '').length !== 16) newErrors.cardNumber = 'Card number must be 16 digits';
-      if (!paymentInfo.expMonth) newErrors.expMonth = 'Expiration month is required';
-      if (!paymentInfo.expYear) newErrors.expYear = 'Expiration year is required';
-      if (!paymentInfo.cvv) newErrors.cvv = 'CVV is required';
-      else if (paymentInfo.cvv.length < 3) newErrors.cvv = 'CVV must be 3 or 4 digits';
+      if (!paymentMethod) newErrors.cardElement = 'Please enter valid card details';
     }
     
     setErrors(newErrors);
@@ -167,65 +336,67 @@ const CheckoutPage = () => {
   const goToNextStep = () => {
     if (validateStep(activeStep)) {
       setActiveStep(activeStep + 1);
-      window.scrollTo(0, 0);
     }
   };
   
   const goToPrevStep = () => {
     setActiveStep(activeStep - 1);
-    window.scrollTo(0, 0);
+  };
+  
+  const handlePaymentSubmit = (paymentMethodObj) => {
+    setPaymentMethod(paymentMethodObj);
+    goToNextStep();
   };
   
   const handlePlaceOrder = async () => {
-    if (!validateStep(activeStep)) return;
-    
     try {
-      // Save order to localStorage
-      const orderId = `ORDER-${Math.floor(100000 + Math.random() * 900000)}`;
-      const order = {
-        id: orderId,
-        date: new Date().toISOString(),
-        customerInfo,
-        deliveryInfo,
-        items: cart.items,
-        subtotal: cart.total,
-        deliveryFee: 50,
-        tax: Number((cart.total * 0.07).toFixed(2)),
-        total: Number((cart.total + 50 + cart.total * 0.07).toFixed(2)),
-        status: 'pending'
-      };
+      setIsProcessing(true);
+      setPaymentError('');
       
-      // Get existing orders or initialize empty array
-      const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-      existingOrders.push(order);
-      
-      // Save updated orders
-      localStorage.setItem('orders', JSON.stringify(existingOrders));
-      
-      // If user is logged in, associate order with user
-      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-      if (isLoggedIn) {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userOrders = user.orders || [];
-        userOrders.push(orderId);
-        user.orders = userOrders;
-        
-        localStorage.setItem('user', JSON.stringify(user));
+      if (!paymentMethod) {
+        setPaymentError('Payment method is required');
+        setIsProcessing(false);
+        return;
       }
       
-      // Update UI
-      setOrderComplete(true);
+      // Calculate total amount
+      const subtotal = cart.total;
+      const deliveryFee = 50; // $50 delivery fee
+      const tax = subtotal * 0.07; // 7% tax
+      const total = subtotal + deliveryFee + tax;
+      
+      // Create checkout session with Stripe
+      const { sessionId, orderId } = await createCheckoutSession(
+        cart,
+        customerInfo,
+        deliveryInfo
+      );
+      
+      // Store order ID for confirmation
       setOrderId(orderId);
       
-      // Clear cart
+      // Redirect to Stripe Checkout
+      const stripe = await getStripe();
+      const { error } = await stripe.redirectToCheckout({
+        sessionId
+      });
+      
+      if (error) {
+        setPaymentError(error.message);
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Clear cart after successful order
       clearCart();
       
-      window.scrollTo(0, 0);
+      // Show order confirmation
+      setOrderComplete(true);
+      setIsProcessing(false);
     } catch (error) {
       console.error('Error placing order:', error);
-      setErrors({
-        form: 'There was an error processing your order. Please try again.'
-      });
+      setPaymentError('An error occurred while processing your payment. Please try again.');
+      setIsProcessing(false);
     }
   };
   
@@ -240,7 +411,7 @@ const CheckoutPage = () => {
       case 4:
         return renderOrderReview();
       default:
-        return renderCustomerInfoForm();
+        return null;
     }
   };
 
@@ -314,9 +485,17 @@ const CheckoutPage = () => {
   };
   
   const renderDeliveryInfoForm = () => {
+    // Determine the current state based on selected city
+    const currentState = deliveryInfo.state || (deliveryInfo.city ? 
+      serviceAreas.find(area => area.city === deliveryInfo.city)?.state || 'IN' : 'IN');
+
     return (
       <div className="form-section">
         <h2>Delivery Information</h2>
+        <div className="service-area-notice">
+          <FontAwesomeIcon icon={faTruck} />
+          <p>We currently serve Elkhart, IN and Angola, IN and surrounding areas only.</p>
+        </div>
         <div className="form-grid">
           <div className="form-group full-width">
             <label htmlFor="address">
@@ -335,14 +514,18 @@ const CheckoutPage = () => {
           
           <div className="form-group">
             <label htmlFor="city">City</label>
-            <input
-              type="text"
+            <select
               id="city"
               name="city"
               value={deliveryInfo.city}
               onChange={handleDeliveryInfoChange}
-              placeholder="Enter your city"
-            />
+            >
+              <option value="">Select a city</option>
+              {/* Filter unique cities from service areas */}
+              {[...new Set(serviceAreas.map(area => area.city))].map((city, index) => (
+                <option key={index} value={city}>{city}</option>
+              ))}
+            </select>
             {errors.city && <div className="input-error">{errors.city}</div>}
           </div>
           
@@ -351,45 +534,95 @@ const CheckoutPage = () => {
             <select
               id="state"
               name="state"
-              value={deliveryInfo.state}
+              value={currentState}
               onChange={handleDeliveryInfoChange}
+              disabled
             >
-              <option value="">Select a state</option>
               <option value="IN">Indiana</option>
               <option value="MI">Michigan</option>
-              <option value="OH">Ohio</option>
-              <option value="IL">Illinois</option>
-              <option value="KY">Kentucky</option>
             </select>
+            <div className="field-note">We only serve IN and MI</div>
             {errors.state && <div className="input-error">{errors.state}</div>}
           </div>
           
           <div className="form-group">
             <label htmlFor="zipCode">ZIP Code</label>
-            <input
-              type="text"
+            <select
               id="zipCode"
               name="zipCode"
               value={deliveryInfo.zipCode}
               onChange={handleDeliveryInfoChange}
-              placeholder="Enter your ZIP code"
-            />
+            >
+              <option value="">Select a ZIP code</option>
+              {/* Filter ZIP codes based on selected city */}
+              {deliveryInfo.city ? 
+                serviceAreas
+                  .filter(area => area.city === deliveryInfo.city)
+                  .map((area, index) => (
+                    <option key={index} value={area.zip}>{area.zip}</option>
+                  ))
+                : 
+                <option value="" disabled>Select a city first</option>
+              }
+            </select>
             {errors.zipCode && <div className="input-error">{errors.zipCode}</div>}
           </div>
           
-          <div className="form-group full-width">
+          <div className="form-group">
             <label htmlFor="deliveryDate">
               <FontAwesomeIcon icon={faCalendarAlt} /> Delivery Date
             </label>
-            <input
-              type="date"
-              id="deliveryDate"
-              name="deliveryDate"
-              value={deliveryInfo.deliveryDate}
-              onChange={handleDeliveryInfoChange}
-              min={new Date().toISOString().split('T')[0]}
-            />
+            <div className="pre-selected-field">
+              <input
+                type="date"
+                id="deliveryDate"
+                name="deliveryDate"
+                value={deliveryInfo.deliveryDate}
+                onChange={handleDeliveryInfoChange}
+                min={new Date().toISOString().split('T')[0]}
+                className="pre-filled-input"
+                readOnly={!!deliveryInfo.deliveryDate}
+              />
+              {deliveryInfo.deliveryDate && (
+                <div className="pre-selected-badge">
+                  <FontAwesomeIcon icon={faCheck} /> Pre-selected
+                </div>
+              )}
+            </div>
             {errors.deliveryDate && <div className="input-error">{errors.deliveryDate}</div>}
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="deliveryTime">
+              <FontAwesomeIcon icon={faClock} /> Delivery Time
+            </label>
+            <div className="pre-selected-field">
+              <select
+                id="deliveryTime"
+                name="deliveryTime"
+                value={deliveryInfo.deliveryTime}
+                onChange={handleDeliveryInfoChange}
+                className="pre-filled-input"
+                disabled={!!deliveryInfo.deliveryTime}
+              >
+                <option value="">Select a time</option>
+                <option value="9:00 AM">9:00 AM</option>
+                <option value="10:00 AM">10:00 AM</option>
+                <option value="11:00 AM">11:00 AM</option>
+                <option value="12:00 PM">12:00 PM</option>
+                <option value="1:00 PM">1:00 PM</option>
+                <option value="2:00 PM">2:00 PM</option>
+                <option value="3:00 PM">3:00 PM</option>
+                <option value="4:00 PM">4:00 PM</option>
+                <option value="5:00 PM">5:00 PM</option>
+              </select>
+              {deliveryInfo.deliveryTime && (
+                <div className="pre-selected-badge">
+                  <FontAwesomeIcon icon={faCheck} /> Pre-selected
+                </div>
+              )}
+            </div>
+            {errors.deliveryTime && <div className="input-error">{errors.deliveryTime}</div>}
           </div>
           
           <div className="form-group full-width">
@@ -414,110 +647,27 @@ const CheckoutPage = () => {
     return (
       <div className="form-section">
         <h2>Payment Information</h2>
-        <div className="secure-payment-notice">
-          <FontAwesomeIcon icon={faLock} />
-          <span>Your payment information is secure and encrypted</span>
-        </div>
-        <div className="form-grid">
-          <div className="form-group full-width">
-            <label htmlFor="cardHolder">
-              <FontAwesomeIcon icon={faUser} /> Card Holder Name
-            </label>
-            <input
-              type="text"
-              id="cardHolder"
-              name="cardHolder"
-              value={paymentInfo.cardHolder}
-              onChange={handlePaymentInfoChange}
-              placeholder="Name as it appears on card"
-            />
-            {errors.cardHolder && <div className="input-error">{errors.cardHolder}</div>}
+        <p className="secure-payment-note">
+          <FontAwesomeIcon icon={faLock} /> All transactions are secure and encrypted
+        </p>
+        
+        <Elements stripe={getStripe()}>
+          <StripePaymentForm 
+            paymentInfo={paymentInfo}
+            handlePaymentInfoChange={handlePaymentInfoChange}
+            errors={errors}
+            onSubmit={handlePaymentSubmit}
+          />
+        </Elements>
+        
+        <div className="payment-methods">
+          <div className="payment-method-title">Accepted Payment Methods</div>
+          <div className="payment-icons">
+            <img src="/images/visa.svg" alt="Visa" className="payment-icon" />
+            <img src="/images/mastercard.svg" alt="Mastercard" className="payment-icon" />
+            <img src="/images/amex.svg" alt="American Express" className="payment-icon" />
+            <img src="/images/discover.svg" alt="Discover" className="payment-icon" />
           </div>
-          
-          <div className="form-group full-width">
-            <label htmlFor="cardNumber">
-              <FontAwesomeIcon icon={faCreditCard} /> Card Number
-            </label>
-            <input
-              type="text"
-              id="cardNumber"
-              name="cardNumber"
-              value={paymentInfo.cardNumber}
-              onChange={handlePaymentInfoChange}
-              placeholder="XXXX XXXX XXXX XXXX"
-              maxLength="19"
-            />
-            {errors.cardNumber && <div className="input-error">{errors.cardNumber}</div>}
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="expMonth">Expiration Month</label>
-            <select
-              id="expMonth"
-              name="expMonth"
-              value={paymentInfo.expMonth}
-              onChange={handlePaymentInfoChange}
-            >
-              <option value="">Month</option>
-              {Array.from({ length: 12 }, (_, i) => {
-                const month = i + 1;
-                return (
-                  <option key={month} value={month.toString().padStart(2, '0')}>
-                    {month.toString().padStart(2, '0')}
-                  </option>
-                );
-              })}
-            </select>
-            {errors.expMonth && <div className="input-error">{errors.expMonth}</div>}
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="expYear">Expiration Year</label>
-            <select
-              id="expYear"
-              name="expYear"
-              value={paymentInfo.expYear}
-              onChange={handlePaymentInfoChange}
-            >
-              <option value="">Year</option>
-              {Array.from({ length: 10 }, (_, i) => {
-                const year = new Date().getFullYear() + i;
-                return (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                );
-              })}
-            </select>
-            {errors.expYear && <div className="input-error">{errors.expYear}</div>}
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="cvv">CVV</label>
-            <input
-              type="text"
-              id="cvv"
-              name="cvv"
-              value={paymentInfo.cvv}
-              onChange={handlePaymentInfoChange}
-              placeholder="XXX"
-              maxLength="4"
-            />
-            {errors.cvv && <div className="input-error">{errors.cvv}</div>}
-          </div>
-          
-          {!isGuest && (
-            <div className="form-group full-width checkbox-group">
-              <input
-                type="checkbox"
-                id="savePaymentInfo"
-                name="savePaymentInfo"
-                checked={paymentInfo.savePaymentInfo}
-                onChange={handlePaymentInfoChange}
-              />
-              <label htmlFor="savePaymentInfo">Save payment information for future orders</label>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -528,43 +678,41 @@ const CheckoutPage = () => {
       <div className="form-section">
         <h2>Review Your Order</h2>
         
-        <div className="review-section">
-          <h3>Customer Information</h3>
-          <div className="review-content">
-            <p><strong>Name:</strong> {customerInfo.firstName} {customerInfo.lastName}</p>
-            <p><strong>Email:</strong> {customerInfo.email}</p>
-            <p><strong>Phone:</strong> {customerInfo.phone}</p>
+        <div className="review-sections">
+          <div className="review-section">
+            <h3>Customer Information</h3>
+            <div className="review-details">
+              <p><strong>Name:</strong> {customerInfo.firstName} {customerInfo.lastName}</p>
+              <p><strong>Email:</strong> {customerInfo.email}</p>
+              <p><strong>Phone:</strong> {customerInfo.phone}</p>
+            </div>
           </div>
-          <button onClick={() => setActiveStep(1)} className="edit-button">Edit</button>
-        </div>
-        
-        <div className="review-section">
-          <h3>Delivery Information</h3>
-          <div className="review-content">
-            <p><strong>Address:</strong> {deliveryInfo.address}</p>
-            <p><strong>City, State ZIP:</strong> {deliveryInfo.city}, {deliveryInfo.state} {deliveryInfo.zipCode}</p>
-            <p><strong>Delivery Date:</strong> {new Date(deliveryInfo.deliveryDate).toLocaleDateString()}</p>
-            {deliveryInfo.deliveryInstructions && (
-              <p><strong>Instructions:</strong> {deliveryInfo.deliveryInstructions}</p>
-            )}
+          
+          <div className="review-section">
+            <h3>Delivery Information</h3>
+            <div className="review-details">
+              <p><strong>Address:</strong> {deliveryInfo.address}</p>
+              <p><strong>City:</strong> {deliveryInfo.city}, {deliveryInfo.state} {deliveryInfo.zipCode}</p>
+              <p><strong>Delivery Date:</strong> {new Date(deliveryInfo.deliveryDate).toLocaleDateString()}</p>
+              <p><strong>Delivery Time:</strong> {deliveryInfo.deliveryTime}</p>
+              {deliveryInfo.deliveryInstructions && (
+                <p><strong>Instructions:</strong> {deliveryInfo.deliveryInstructions}</p>
+              )}
+            </div>
           </div>
-          <button onClick={() => setActiveStep(2)} className="edit-button">Edit</button>
-        </div>
-        
-        <div className="review-section">
-          <h3>Payment Method</h3>
-          <div className="review-content">
-            <p><strong>Card Holder:</strong> {paymentInfo.cardHolder}</p>
-            <p><strong>Card Number:</strong> **** **** **** {paymentInfo.cardNumber.slice(-4)}</p>
-            <p><strong>Expiration:</strong> {paymentInfo.expMonth}/{paymentInfo.expYear}</p>
+          
+          <div className="review-section">
+            <h3>Payment Information</h3>
+            <div className="review-details">
+              <p><strong>Card Holder:</strong> {paymentInfo.cardHolder}</p>
+              <p><strong>Card Number:</strong> **** **** **** {paymentMethod.card.last4}</p>
+              <p><strong>Expiration:</strong> {paymentMethod.card.exp_month}/{paymentMethod.card.exp_year}</p>
+            </div>
           </div>
-          <button onClick={() => setActiveStep(3)} className="edit-button">Edit</button>
         </div>
         
         <div className="terms-agreement">
-          <p>
-            By placing your order, you agree to RoweBros Party Rentals' <a href="/terms">Terms and Conditions</a> and acknowledge that your credit card will be charged for the total amount shown.
-          </p>
+          <p>By placing your order, you agree to our <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</p>
         </div>
       </div>
     );
@@ -593,6 +741,7 @@ const CheckoutPage = () => {
           <p>{deliveryInfo.address}</p>
           <p>{deliveryInfo.city}, {deliveryInfo.state} {deliveryInfo.zipCode}</p>
           <p>Delivery Date: {new Date(deliveryInfo.deliveryDate).toLocaleDateString()}</p>
+          <p>Delivery Time: {deliveryInfo.deliveryTime}</p>
         </div>
         
         <div className="order-summary confirmation">
@@ -644,12 +793,11 @@ const CheckoutPage = () => {
 
   return (
     <div className="checkout-page">
-      <div className="checkout-container">
+      <div className="container">
         {orderComplete ? (
           renderOrderConfirmation()
         ) : (
           <>
-            <h1 className="checkout-title">Checkout</h1>
             {isGuest && (
               <div className="guest-checkout-banner">
                 <p>
@@ -699,7 +847,8 @@ const CheckoutPage = () => {
                       <div className="item-details">
                         <h4>{item.name}</h4>
                         <p className="item-quantity">Quantity: {item.quantity}</p>
-                        <p className="item-rental-date">Rental Date: {new Date(item.date).toLocaleDateString()}</p>
+                        <p className="item-rental-date">Date: {new Date(item.date).toLocaleDateString()}</p>
+                        <p className="item-rental-time">Time: {item.time}</p>
                       </div>
                       <div className="item-price">${item.priceNumeric}</div>
                     </div>
@@ -727,20 +876,31 @@ const CheckoutPage = () => {
               </div>
             </div>
             
+            {paymentError && (
+              <div className="payment-error">
+                <FontAwesomeIcon icon={faTimes} /> {paymentError}
+              </div>
+            )}
+            
             <div className="checkout-navigation">
               {activeStep > 1 && (
-                <button onClick={goToPrevStep} className="prev-button">
+                <button onClick={goToPrevStep} className="prev-button" disabled={isProcessing}>
                   Back
                 </button>
               )}
               
               {activeStep < 4 ? (
-                <button onClick={goToNextStep} className="next-button">
+                <button onClick={goToNextStep} className="next-button" disabled={isProcessing}>
                   Continue <FontAwesomeIcon icon={faChevronRight} />
                 </button>
               ) : (
-                <button onClick={handlePlaceOrder} className="place-order-button">
-                  Place Order <FontAwesomeIcon icon={faCheck} />
+                <button 
+                  onClick={handlePlaceOrder} 
+                  className="place-order-button" 
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? 'Processing...' : 'Place Order'} 
+                  {!isProcessing && <FontAwesomeIcon icon={faCheck} />}
                 </button>
               )}
             </div>
