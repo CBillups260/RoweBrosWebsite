@@ -16,7 +16,8 @@ import {
 } from '../../services/authService';
 import { 
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithRedirect,
+  getRedirectResult
 } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -34,10 +35,18 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check if user is already logged in
+  // Check if user is already logged in and handle redirect result
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Check for redirect result first
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // User just signed in with Google redirect
+          await handleGoogleSignInResult(result);
+        }
+        
+        // Then check if user is already authenticated
         const user = await getCurrentUser();
         if (user && user.isStaff) {
           // Redirect to the intended page or dashboard
@@ -46,6 +55,7 @@ const AdminLogin = () => {
         }
       } catch (error) {
         console.error('Auth check error:', error);
+        setError(error.message || 'Authentication error. Please try again.');
       } finally {
         setCheckingAuth(false);
       }
@@ -53,6 +63,44 @@ const AdminLogin = () => {
     
     checkAuth();
   }, [navigate, location]);
+  
+  // Handle Google sign-in result
+  const handleGoogleSignInResult = async (result) => {
+    try {
+      setLoading(true);
+      
+      // Check if the Google user is a staff member in Firestore
+      const staffRef = collection(db, 'staff');
+      const q = query(staffRef, where("email", "==", result.user.email));
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        // Not a staff member
+        setError('This Google account does not have admin access. Please use an authorized account or log in with email/password.');
+        // Sign out since this is not a staff account
+        await auth.signOut();
+        return;
+      }
+      
+      const staffData = snapshot.docs[0].data();
+      
+      // Check if staff is active
+      if (staffData.status !== 'Active') {
+        setError('Your account is inactive. Please contact an administrator.');
+        // Sign out since account is inactive
+        await auth.signOut();
+        return;
+      }
+      
+      // Successfully authenticated as staff
+      // Redirect will happen automatically in the checkAuth effect
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setError(error.message || 'Failed to sign in with Google. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -109,48 +157,14 @@ const AdminLogin = () => {
       const provider = new GoogleAuthProvider();
       provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
       provider.addScope('https://www.googleapis.com/auth/userinfo.email');
-      const result = await signInWithPopup(auth, provider);
       
-      // Check if the Google user is a staff member in Firestore
-      const staffRef = collection(db, 'staff');
-      const q = query(staffRef, where("email", "==", result.user.email));
-      const snapshot = await getDocs(q);
+      // Use redirect method instead of popup
+      await signInWithRedirect(auth, provider);
       
-      if (snapshot.empty) {
-        // Not a staff member
-        setError('This Google account does not have admin access. Please use an authorized account or log in with email/password.');
-        setLoading(false);
-        // Sign out since this is not a staff account
-        await auth.signOut();
-        return;
-      }
-      
-      const staffData = snapshot.docs[0].data();
-      
-      // Check if staff is active
-      if (staffData.status !== 'Active') {
-        setError('Your account is not active. Please contact an administrator.');
-        setLoading(false);
-        // Sign out since this is not an active account
-        await auth.signOut();
-        return;
-      }
-      
-      // Redirect to the intended page or dashboard
-      const from = location.state?.from?.pathname || '/admin';
-      navigate(from, { replace: true });
+      // The redirect will happen now, and the result will be handled in useEffect
     } catch (error) {
-      console.error('Google login error:', error);
-      
-      // Set appropriate error message
-      if (error.code === 'auth/popup-closed-by-user') {
-        setError('Login cancelled. Please try again.');
-      } else if (error.code === 'auth/popup-blocked') {
-        setError('Pop-up blocked by browser. Please allow pop-ups for this site.');
-      } else {
-        setError(error.message || 'Failed to log in with Google. Please try again.');
-      }
-      
+      console.error('Google sign-in error:', error);
+      setError(error.message || 'Failed to start Google sign-in. Please try again.');
       setLoading(false);
     }
   };
