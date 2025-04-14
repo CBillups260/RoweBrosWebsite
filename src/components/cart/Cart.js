@@ -48,7 +48,7 @@ const Cart = ({ isOpen, toggleCart }) => {
     };
   }, [isOpen]);
 
-  const handleRemoveItem = (id, date, e) => {
+  const handleRemoveItem = (id, bookingId, e) => {
     // Prevent event from propagating up to parent elements
     if (e) {
       e.preventDefault();
@@ -56,10 +56,10 @@ const Cart = ({ isOpen, toggleCart }) => {
     }
     
     // Remove the item from cart
-    removeFromCart(id, date);
+    removeFromCart(id, bookingId);
   };
 
-  const handleQuantityChange = (id, date, currentQuantity, change, e) => {
+  const handleQuantityChange = (id, bookingId, currentQuantity, change, e) => {
     // Prevent event from propagating up to parent elements
     if (e) {
       e.preventDefault();
@@ -68,13 +68,23 @@ const Cart = ({ isOpen, toggleCart }) => {
     
     const newQuantity = currentQuantity + change;
     if (newQuantity > 0) {
-      updateQuantity(id, date, newQuantity);
+      updateQuantity(id, bookingId, newQuantity);
     }
   };
 
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    if (!dateString) return '';
+    
+    // Handle both Date objects and strings
+    const date = dateString instanceof Date ? dateString : new Date(dateString);
+    
+    // Use UTC methods to avoid timezone issues
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC'
+    });
   };
 
   const formatCurrency = (amount) => {
@@ -120,7 +130,7 @@ const Cart = ({ isOpen, toggleCart }) => {
           <>
             <div className="cart-items">
               {cart.items.map((item, index) => (
-                <div key={`${item.id}-${item.date}-${index}`} className="cart-item">
+                <div key={`${item.id}-${item.bookingId}-${index}`} className="cart-item">
                   <div className="cart-item-image">
                     <img src={item.mainImage || item.image} alt={item.name} />
                   </div>
@@ -128,12 +138,15 @@ const Cart = ({ isOpen, toggleCart }) => {
                     <div className="cart-item-details">
                       <h5>{item.name}</h5>
                       <p className="cart-item-price">{formatCurrency(item.priceNumeric * item.quantity)}</p>
-                      <div className="cart-item-date">For: {formatDate(item.date)}</div>
+                      <div className="cart-item-booking">
+                        <div className="cart-item-date">Date: {formatDate(item.date)}</div>
+                        <div className="cart-item-time">Time: {item.time}</div>
+                      </div>
                     </div>
                     <div className="cart-item-actions">
                       <div className="quantity-controls">
                         <button 
-                          onClick={(e) => handleQuantityChange(item.id, item.date, item.quantity, -1, e)}
+                          onClick={(e) => handleQuantityChange(item.id, item.bookingId, item.quantity, -1, e)}
                           className="quantity-btn"
                           disabled={item.quantity <= 1}
                           aria-label="Decrease quantity"
@@ -142,7 +155,7 @@ const Cart = ({ isOpen, toggleCart }) => {
                         </button>
                         <span className="quantity">{item.quantity}</span>
                         <button 
-                          onClick={(e) => handleQuantityChange(item.id, item.date, item.quantity, 1, e)}
+                          onClick={(e) => handleQuantityChange(item.id, item.bookingId, item.quantity, 1, e)}
                           className="quantity-btn"
                           aria-label="Increase quantity"
                         >
@@ -151,7 +164,7 @@ const Cart = ({ isOpen, toggleCart }) => {
                       </div>
                       <button 
                         className="remove-item"
-                        onClick={(e) => handleRemoveItem(item.id, item.date, e)}
+                        onClick={(e) => handleRemoveItem(item.id, item.bookingId, e)}
                         aria-label="Remove item"
                       >
                         <FontAwesomeIcon icon={faTrash} />

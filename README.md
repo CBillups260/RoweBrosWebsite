@@ -68,3 +68,28 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Stripe Integration
+
+This project uses Stripe for payment processing. To set up Stripe:
+
+1. Create a `.env` file in the root directory with the following variables:
+```
+REACT_APP_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+REACT_APP_STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+```
+
+2. Replace `your_stripe_publishable_key` and `your_stripe_secret_key` with your actual Stripe API keys.
+
+3. To sync products from Firebase to Stripe, run:
+```
+npm run sync-products
+```
+
+4. To start the development server with Stripe integration:
+```
+npm run dev
+```
+
+**Note:** Never commit your actual API keys to version control.

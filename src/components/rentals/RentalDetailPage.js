@@ -13,19 +13,24 @@ import {
   faShoppingCart,
   faStar,
   faCheck,
-  faInfoCircle
+  faInfoCircle,
+  faClock
 } from '@fortawesome/free-solid-svg-icons';
 import { useCart } from '../../context/CartContext';
 import PlaceholderImage from '../common/PlaceholderImage';
 import { getProductById, getProducts } from '../../services/productService';
 import { getCategoryById } from '../../services/categoryService';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import '../../styles/datepicker-custom.css';
 import '../../styles/rental-detail.css';
 
 const RentalDetailPage = () => {
   const { id } = useParams();
   const [rental, setRental] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedTime, setSelectedTime] = useState('');
   const [relatedRentals, setRelatedRentals] = useState([]);
   const [activeTab, setActiveTab] = useState('description');
   const [selectedImage, setSelectedImage] = useState(0);
@@ -112,13 +117,46 @@ const RentalDetailPage = () => {
     fetchProductDetails();
   }, [id]);
 
-  const handleDateChange = (e) => {
-    setSelectedDate(e.target.value);
+  // Calculate the minimum allowed booking date (tomorrow)
+  const minBookingDate = new Date();
+  minBookingDate.setDate(minBookingDate.getDate() + 1); // Add 24-hour buffer
+  
+  // Calculate the maximum allowed booking date (12 months from today)
+  const maxBookingDate = new Date();
+  maxBookingDate.setFullYear(maxBookingDate.getFullYear() + 1);
+  
+  // Available time slots
+  const timeSlots = [
+    '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', 
+    '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
+  ];
+  
+  // Format dates for display
+  const formatDateForDisplay = (date) => {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+  
+  const handleTimeChange = (e) => {
+    setSelectedTime(e.target.value);
   };
 
   const handleAddToCart = () => {
     if (!selectedDate) {
       alert('Please select a rental date before adding to cart');
+      return;
+    }
+    
+    if (!selectedTime) {
+      alert('Please select a time slot before adding to cart');
       return;
     }
     
@@ -132,7 +170,17 @@ const RentalDetailPage = () => {
       location: rental.location
     };
     
-    addToCart(rentalItem, selectedDate);
+    // Create a new date object with the selected date and time
+    const dateTimeObj = new Date(selectedDate);
+    
+    // Add the time information to the cart item
+    const bookingInfo = {
+      date: dateTimeObj,
+      time: selectedTime
+    };
+    
+    // Send the booking info to the cart
+    addToCart(rentalItem, bookingInfo);
     setAddedToCart(true);
     
     // Reset added to cart message after 3 seconds
@@ -247,13 +295,60 @@ const RentalDetailPage = () => {
                 <label htmlFor="rental-date">
                   <FontAwesomeIcon icon={faCalendarAlt} /> Select Date:
                 </label>
-                <input 
-                  type="date" 
-                  id="rental-date" 
-                  value={selectedDate} 
-                  onChange={handleDateChange}
-                  min={new Date().toISOString().split('T')[0]}
-                />
+                <div className="datepicker-container">
+                  <DatePicker
+                    selected={selectedDate}
+                    onChange={handleDateChange}
+                    minDate={minBookingDate}
+                    maxDate={maxBookingDate}
+                    placeholderText="Click to select a date"
+                    dateFormat="MMMM d, yyyy"
+                    className="custom-datepicker"
+                    showMonthDropdown
+                    showYearDropdown
+                    dropdownMode="select"
+                  />
+                  <div className="date-helper-text">
+                    <small>
+                      <FontAwesomeIcon icon={faInfoCircle} /> Bookings available from {formatDateForDisplay(minBookingDate)} to {formatDateForDisplay(maxBookingDate)}
+                    </small>
+                  </div>
+                </div>
+                {selectedDate && (
+                  <div className="selected-date-confirmation">
+                    <FontAwesomeIcon icon={faCheck} /> Selected: {formatDateForDisplay(selectedDate)}
+                  </div>
+                )}
+              </div>
+              
+              <div className="time-selection">
+                <label htmlFor="rental-time">
+                  <FontAwesomeIcon icon={faClock} /> Select Time:
+                </label>
+                <div className="time-select-container">
+                  <select 
+                    id="rental-time" 
+                    className="time-select" 
+                    value={selectedTime} 
+                    onChange={handleTimeChange}
+                    required
+                  >
+                    <option value="">Select a time slot</option>
+                    {timeSlots.map((time, index) => (
+                      <option key={index} value={time}>{time}</option>
+                    ))}
+                  </select>
+                  <div className="time-helper-text">
+                    <small>
+                      <FontAwesomeIcon icon={faInfoCircle} /> Please select your preferred delivery/pickup time
+                    </small>
+                  </div>
+                </div>
+                {selectedTime && (
+                  <div className="selected-time-confirmation">
+                    <FontAwesomeIcon icon={faCheck} /> Time: {selectedTime}
+                  </div>
+                )}
               </div>
               
               <button 
