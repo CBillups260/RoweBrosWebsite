@@ -16,8 +16,21 @@ const CLEAR_CART = 'CLEAR_CART';
 // Helper function to extract numeric price from price string
 const extractPriceNumeric = (priceString) => {
   if (!priceString) return 0;
-  const match = priceString.match(/\$?(\d+)/);
-  return match ? parseFloat(match[1]) : 0;
+  
+  // Handle different price formats
+  let price = 0;
+  
+  // If it's already a number, use it directly
+  if (typeof priceString === 'number') {
+    price = priceString;
+  } else {
+    // Remove currency symbols, commas, and other non-numeric characters except decimal point
+    const cleanedString = priceString.toString().replace(/[^0-9.]/g, '');
+    price = parseFloat(cleanedString);
+  }
+  
+  // Ensure we have a valid number and it's positive
+  return isNaN(price) ? 0 : Math.abs(price);
 };
 
 // Cart reducer function
@@ -35,27 +48,22 @@ const cartReducer = (state, action) => {
       // Create a unique booking identifier that includes both date and time
       const bookingId = `${formattedDate}|${time}`;
       
-      // Extract numeric price from price string (e.g., "$150/day" -> 150)
-      const priceNumeric = extractPriceNumeric(item.price);
+      // Extract numeric price from price string and ensure it's positive
+      const priceNumeric = Math.abs(extractPriceNumeric(item.price));
       
       // Check if item with same id and booking info already exists in cart
       const existingItemIndex = state.items.findIndex(
         cartItem => cartItem.id === item.id && cartItem.bookingId === bookingId
       );
       
+      let updatedItems;
+      let newItemCount;
+      
       if (existingItemIndex >= 0) {
         // If item exists, update quantity
-        const updatedItems = [...state.items];
+        updatedItems = [...state.items];
         updatedItems[existingItemIndex].quantity += 1;
-        
-        const newTotal = state.total + priceNumeric;
-        
-        return {
-          ...state,
-          items: updatedItems,
-          itemCount: state.itemCount + 1,
-          total: newTotal
-        };
+        newItemCount = state.itemCount + 1;
       } else {
         // If item doesn't exist, add it to cart
         const newItem = {
@@ -67,13 +75,21 @@ const cartReducer = (state, action) => {
           priceNumeric
         };
         
-        return {
-          ...state,
-          items: [...state.items, newItem],
-          itemCount: state.itemCount + 1,
-          total: state.total + priceNumeric
-        };
+        updatedItems = [...state.items, newItem];
+        newItemCount = state.itemCount + 1;
       }
+      
+      // Recalculate total from scratch based on all items
+      const newTotal = updatedItems.reduce((total, item) => {
+        return total + (item.priceNumeric * item.quantity);
+      }, 0);
+      
+      return {
+        ...state,
+        items: updatedItems,
+        itemCount: newItemCount,
+        total: newTotal
+      };
     }
     
     case REMOVE_FROM_CART: {
@@ -86,19 +102,21 @@ const cartReducer = (state, action) => {
       
       if (!itemToRemove) return state;
       
-      // Calculate the amount to subtract from total
-      const amountToSubtract = itemToRemove.priceNumeric * itemToRemove.quantity;
-      
       // Filter out the item
       const updatedItems = state.items.filter(
         item => !(item.id === id && item.bookingId === bookingId)
       );
       
+      // Recalculate total from scratch
+      const newTotal = updatedItems.reduce((total, item) => {
+        return total + (item.priceNumeric * item.quantity);
+      }, 0);
+      
       return {
         ...state,
         items: updatedItems,
         itemCount: state.itemCount - itemToRemove.quantity,
-        total: state.total - amountToSubtract
+        total: newTotal
       };
     }
     
@@ -114,7 +132,6 @@ const cartReducer = (state, action) => {
       
       const item = state.items[itemIndex];
       const quantityDifference = quantity - item.quantity;
-      const priceDifference = item.priceNumeric * quantityDifference;
       
       // Create new array with updated item
       const updatedItems = [...state.items];
@@ -123,11 +140,16 @@ const cartReducer = (state, action) => {
         quantity
       };
       
+      // Recalculate total from scratch
+      const newTotal = updatedItems.reduce((total, item) => {
+        return total + (item.priceNumeric * item.quantity);
+      }, 0);
+      
       return {
         ...state,
         items: updatedItems,
         itemCount: state.itemCount + quantityDifference,
-        total: state.total + priceDifference
+        total: newTotal
       };
     }
     

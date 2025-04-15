@@ -360,7 +360,7 @@ const CheckoutPage = () => {
       }
       
       // Calculate total amount
-      const subtotal = cart.total;
+      const subtotal = Math.abs(cart.total);
       const deliveryFee = 50; // $50 delivery fee
       const tax = subtotal * 0.07; // 7% tax
       const total = subtotal + deliveryFee + tax;

@@ -61,8 +61,8 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
       createdAt: serverTimestamp(),
     });
 
-    // Create a checkout session with Stripe
-    const response = await fetch('/api/create-checkout-session', {
+    // Create a checkout session with Stripe using Netlify function
+    const response = await fetch('/.netlify/functions/create-checkout-session', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

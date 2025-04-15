@@ -389,44 +389,58 @@
   opacity: 1;
 }
 
-.quick-add {
+.book-now-button {
   position: absolute;
   bottom: 10px;
   right: 10px;
-  background-color: #1E88E5;
-  color: white;
+  background-color: #FF8C00; /* Orange color for better visibility */
+  color: black; /* Black text for proper visibility on light backgrounds */
   border: none;
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 0.8rem;
   font-weight: 600;
+  text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease;
   opacity: 0;
   transform: translateY(10px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rental-card:hover .book-now-button {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.book-now-button:hover {
+  background-color: #FFA500;
+}
+
+.quick-add {
+  display: none;
 }
 
 .rental-card:hover .quick-add {
-  opacity: 1;
-  transform: translateY(0);
+  display: none;
 }
 
 .quick-add:hover {
-  background-color: #1976D2;
+  display: none;
 }
 
 .quick-add.added {
-  background-color: #4CAF50;
-  opacity: 1;
-  transform: translateY(0);
+  display: none;
 }
 
 .quick-add.added:hover {
-  background-color: #43A047;
+  display: none;
 }
 
 .quick-add:disabled {
-  cursor: default;
+  display: none;
 }
 
 .rental-info {
