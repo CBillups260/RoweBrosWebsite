@@ -4,6 +4,9 @@
   "description": "Netlify functions for Rowe Bros",
   "main": "index.js",
   "dependencies": {
-    "stripe": "^17.14.0"
+    "stripe": "^17.14.0",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1"
   }
 }
