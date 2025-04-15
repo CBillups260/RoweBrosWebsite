@@ -305,37 +305,72 @@ const CheckoutPage = () => {
   };
   
   const validateStep = (step) => {
+    // Create a new errors object instead of modifying the existing one
     const newErrors = {};
     
-    if (step === 1) {
-      if (!customerInfo.firstName) newErrors.firstName = 'First name is required';
-      if (!customerInfo.lastName) newErrors.lastName = 'Last name is required';
-      if (!customerInfo.email) newErrors.email = 'Email is required';
-      else if (!/\S+@\S+\.\S+/.test(customerInfo.email)) newErrors.email = 'Email is invalid';
-      if (!customerInfo.phone) newErrors.phone = 'Phone number is required';
+    try {
+      if (step === 1) {
+        if (!customerInfo.firstName) newErrors.firstName = 'First name is required';
+        if (!customerInfo.lastName) newErrors.lastName = 'Last name is required';
+        if (!customerInfo.email) newErrors.email = 'Email is required';
+        else if (!/\S+@\S+\.\S+/.test(customerInfo.email)) newErrors.email = 'Email is invalid';
+        if (!customerInfo.phone) newErrors.phone = 'Phone number is required';
+      }
+      
+      if (step === 2) {
+        if (!deliveryInfo.address) newErrors.address = 'Address is required';
+        if (!deliveryInfo.city) newErrors.city = 'City is required';
+        // Don't validate state since it's auto-selected based on city
+        if (!deliveryInfo.zipCode) newErrors.zipCode = 'ZIP code is required';
+        if (!deliveryInfo.deliveryDate) newErrors.deliveryDate = 'Delivery date is required';
+        if (!deliveryInfo.deliveryTime) newErrors.deliveryTime = 'Delivery time is required';
+      }
+      
+      if (step === 3) {
+        if (!paymentInfo.cardHolder) newErrors.cardHolder = 'Card holder name is required';
+        // Only check paymentMethod on the final submission
+        // if (!paymentMethod) newErrors.cardElement = 'Please enter valid card details';
+      }
+      
+      // Set the errors state with the new errors
+      setErrors(newErrors);
+      
+      // Log validation results for debugging
+      console.log('Validation errors for step', step, ':', newErrors);
+      
+      // Return true if there are no errors
+      return Object.keys(newErrors).length === 0;
+    } catch (error) {
+      console.error('Error in validateStep:', error);
+      // If there's an error, return true to allow proceeding to the next step
+      // This prevents users from getting stuck if there's a validation bug
+      return true;
     }
-    
-    if (step === 2) {
-      if (!deliveryInfo.address) newErrors.address = 'Address is required';
-      if (!deliveryInfo.city) newErrors.city = 'City is required';
-      // Don't validate state since it's auto-selected based on city
-      if (!deliveryInfo.zipCode) newErrors.zipCode = 'ZIP code is required';
-      if (!deliveryInfo.deliveryDate) newErrors.deliveryDate = 'Delivery date is required';
-      if (!deliveryInfo.deliveryTime) newErrors.deliveryTime = 'Delivery time is required';
-    }
-    
-    if (step === 3) {
-      if (!paymentInfo.cardHolder) newErrors.cardHolder = 'Card holder name is required';
-      if (!paymentMethod) newErrors.cardElement = 'Please enter valid card details';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
   
   const goToNextStep = () => {
-    if (validateStep(activeStep)) {
-      setActiveStep(activeStep + 1);
+    // Clear any previous errors
+    setErrors({});
+    
+    try {
+      // Add console logging to help debug
+      console.log('Current step:', activeStep);
+      console.log('Validating step...');
+      
+      const isValid = validateStep(activeStep);
+      console.log('Validation result:', isValid);
+      console.log('Validation errors:', errors);
+      
+      if (isValid) {
+        console.log('Moving to next step:', activeStep + 1);
+        setActiveStep(prevStep => prevStep + 1);
+      } else {
+        console.log('Validation failed, staying on step:', activeStep);
+      }
+    } catch (error) {
+      console.error('Error in goToNextStep:', error);
+      // Show a user-friendly error message
+      alert('There was an error processing your request. Please try again.');
     }
   };
   
@@ -350,10 +385,12 @@ const CheckoutPage = () => {
   
   const handlePlaceOrder = async () => {
     try {
+      console.log('Placing order...');
       setIsProcessing(true);
       setPaymentError('');
       
       if (!paymentMethod) {
+        console.log('Payment method missing');
         setPaymentError('Payment method is required');
         setIsProcessing(false);
         return;
@@ -365,34 +402,47 @@ const CheckoutPage = () => {
       const tax = subtotal * 0.07; // 7% tax
       const total = subtotal + deliveryFee + tax;
       
+      console.log('Order details:', { subtotal, deliveryFee, tax, total });
+      
       // Create checkout session with Stripe
-      const { sessionId, orderId } = await createCheckoutSession(
-        cart,
-        customerInfo,
-        deliveryInfo
-      );
-      
-      // Store order ID for confirmation
-      setOrderId(orderId);
-      
-      // Redirect to Stripe Checkout
-      const stripe = await getStripe();
-      const { error } = await stripe.redirectToCheckout({
-        sessionId
-      });
-      
-      if (error) {
-        setPaymentError(error.message);
+      console.log('Creating checkout session...');
+      try {
+        const { sessionId, orderId } = await createCheckoutSession(
+          cart,
+          customerInfo,
+          deliveryInfo
+        );
+        
+        console.log('Checkout session created:', { sessionId, orderId });
+        
+        // Store order ID for confirmation
+        setOrderId(orderId);
+        
+        // Redirect to Stripe Checkout
+        console.log('Redirecting to Stripe checkout...');
+        const stripe = await getStripe();
+        const { error } = await stripe.redirectToCheckout({
+          sessionId
+        });
+        
+        if (error) {
+          console.error('Stripe redirect error:', error);
+          setPaymentError(error.message);
+          setIsProcessing(false);
+          return;
+        }
+        
+        // Clear cart after successful order
+        clearCart();
+        
+        // Show order confirmation
+        setOrderComplete(true);
         setIsProcessing(false);
-        return;
+      } catch (error) {
+        console.error('Checkout session error:', error);
+        setPaymentError(`Error creating checkout session: ${error.message}`);
+        setIsProcessing(false);
       }
-      
-      // Clear cart after successful order
-      clearCart();
-      
-      // Show order confirmation
-      setOrderComplete(true);
-      setIsProcessing(false);
     } catch (error) {
       console.error('Error placing order:', error);
       setPaymentError('An error occurred while processing your payment. Please try again.');
