@@ -48,18 +48,22 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
         deliveryTime: deliveryInfo.deliveryTime || '',
         specialInstructions: deliveryInfo.specialInstructions || ''
       },
-      items: cart.items.map(item => ({
-        id: item.id || '',
-        name: item.name || '',
-        price: item.price || 0,
-        quantity: item.quantity || 0,
-        image: item.image || '',
-        description: item.description || 'Fresh produce from Rowe Bros'
-      })),
-      subtotal: cart.total || 0,
+      items: cart.items.map(item => {
+        // Ensure price is a valid number
+        const price = parseFloat(item.price) || 0;
+        return {
+          id: item.id || '',
+          name: item.name || '',
+          price: price,
+          quantity: parseInt(item.quantity) || 0,
+          image: item.image || '',
+          description: item.description || 'Fresh produce from Rowe Bros'
+        };
+      }),
+      subtotal: parseFloat(cart.total) || 0,
       deliveryFee: 50, // $50 delivery fee
       tax: 0, // Calculate tax if needed
-      total: (cart.total || 0) + 50,
+      total: (parseFloat(cart.total) || 0) + 50,
       status: 'pending',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -70,6 +74,11 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
     // Validate required fields
     if (!orderData.customerInfo.email || !orderData.deliveryInfo.address) {
       throw new Error('Missing required customer information');
+    }
+
+    // Validate numeric fields
+    if (isNaN(orderData.subtotal) || isNaN(orderData.total)) {
+      throw new Error('Invalid price values in cart');
     }
 
     console.log('Creating order in Firebase:', orderData);
