@@ -51,18 +51,26 @@ exports.handler = async (event, context) => {
     }
 
     // Format line items for Stripe
-    const lineItems = cart.items.map(item => ({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: item.name,
-          description: item.description || 'Fresh produce from Rowe Bros',
-          images: item.image ? [item.image] : [],
+    const lineItems = cart.items.map(item => {
+      // Ensure price is a valid number and convert to cents
+      const priceInCents = Math.round((parseFloat(item.price) || 0) * 100);
+      if (isNaN(priceInCents) || priceInCents <= 0) {
+        throw new Error(`Invalid price for item: ${item.name}`);
+      }
+
+      return {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: item.name || 'Unnamed Product',
+            description: item.description || 'Fresh produce from Rowe Bros',
+            images: item.image ? [item.image] : [],
+          },
+          unit_amount: priceInCents,
         },
-        unit_amount: Math.round(parseFloat(item.price) * 100), // Convert to cents
-      },
-      quantity: item.quantity,
-    }));
+        quantity: parseInt(item.quantity) || 1,
+      };
+    });
 
     // Add delivery fee as a separate line item
     lineItems.push({
@@ -76,6 +84,11 @@ exports.handler = async (event, context) => {
       },
       quantity: 1,
     });
+
+    // Validate line items
+    if (lineItems.length === 0) {
+      throw new Error('No valid items in cart');
+    }
 
     // Create metadata for the session
     const metadata = {
