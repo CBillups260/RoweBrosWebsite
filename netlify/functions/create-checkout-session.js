@@ -30,34 +30,28 @@ exports.handler = async (event, context) => {
     const stripeInstance = stripe(process.env.STRIPE_SECRET_KEY);
     
     // Format line items for Stripe
-    const lineItems = cart.items.map(item => {
-      // Extract price as integer (in cents)
-      const priceInCents = Math.round(Math.abs(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * 100));
-      
-      return {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: item.name,
-            description: item.description || '',
-            images: item.image ? [item.image] : [],
-          },
-          unit_amount: priceInCents,
+    const lineItems = cart.items.map(item => ({
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: item.name,
+          description: item.description || 'Fresh produce from Rowe Bros',
+          images: item.image ? [item.image] : [],
         },
-        quantity: item.quantity,
-      };
-    });
+        unit_amount: Math.round(parseFloat(item.price) * 100), // Convert to cents
+      },
+      quantity: item.quantity,
+    }));
 
     // Add delivery fee as a separate line item
-    const deliveryFee = 5000; // $50 in cents
     lineItems.push({
       price_data: {
         currency: 'usd',
         product_data: {
           name: 'Delivery Fee',
-          description: 'Standard delivery fee',
+          description: 'Standard delivery service',
         },
-        unit_amount: deliveryFee,
+        unit_amount: 5000, // $50.00 in cents
       },
       quantity: 1,
     });

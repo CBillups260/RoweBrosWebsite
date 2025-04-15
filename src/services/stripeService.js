@@ -2,6 +2,7 @@ import stripeConfig from '../config/stripe-config';
 import { loadStripe } from '@stripe/stripe-js';
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { auth } from '../firebase';
 
 // Initialize Stripe
 let stripePromise;
@@ -29,18 +30,43 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
       customerEmail: customerInfo.email
     });
 
-    // Create an order document in Firestore
-    const orderRef = await addDoc(collection(db, 'orders'), {
-      customerInfo,
-      deliveryInfo,
-      items: cart.items,
+    // Create order in Firebase first
+    const orderData = {
+      customerInfo: {
+        email: customerInfo.email,
+        name: customerInfo.name,
+        phone: customerInfo.phone
+      },
+      deliveryInfo: {
+        address: deliveryInfo.address,
+        city: deliveryInfo.city,
+        state: deliveryInfo.state,
+        zipCode: deliveryInfo.zipCode,
+        deliveryDate: deliveryInfo.deliveryDate,
+        deliveryTime: deliveryInfo.deliveryTime,
+        specialInstructions: deliveryInfo.specialInstructions
+      },
+      items: cart.items.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+        description: item.description || 'Fresh produce from Rowe Bros' // Add default description if none exists
+      })),
       subtotal: cart.total,
-      deliveryFee: 50.00,
-      tax: cart.total * 0.07,
-      total: cart.total + 50 + (cart.total * 0.07),
+      deliveryFee: 50, // $50 delivery fee
+      tax: 0, // Calculate tax if needed
+      total: cart.total + 50,
       status: 'pending',
-      createdAt: serverTimestamp(),
-    });
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      userId: auth.currentUser?.uid || null,
+      isGuest: !auth.currentUser,
+    };
+
+    // Create an order document in Firestore
+    const orderRef = await addDoc(collection(db, 'orders'), orderData);
 
     // Create a checkout session with Stripe using Netlify function
     const response = await fetch('/.netlify/functions/create-checkout-session', {
