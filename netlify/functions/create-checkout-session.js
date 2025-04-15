@@ -1,10 +1,12 @@
 // Netlify serverless function for creating a Stripe checkout session
-const stripe = require('stripe');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Add debug logging for environment variables
 console.log('Function environment check:', {
   hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
-  keyPrefix: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.substring(0, 7) : 'missing'
+  keyPrefix: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.substring(0, 7) : 'missing',
+  nodeEnv: process.env.NODE_ENV,
+  url: process.env.URL
 });
 
 exports.handler = async (event, context) => {
@@ -12,23 +14,42 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
 
   try {
     // Parse the request body
-    const { cart, customerInfo, deliveryInfo } = JSON.parse(event.body);
+    let body;
+    try {
+      body = JSON.parse(event.body);
+    } catch (e) {
+      console.error('Error parsing request body:', e);
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Invalid request body' })
+      };
+    }
+
+    const { cart, customerInfo, deliveryInfo } = body;
     
     console.log('Received checkout request:', { 
-      customerEmail: customerInfo.email,
-      cartItems: cart.items.length,
-      total: cart.total
+      customerEmail: customerInfo?.email,
+      cartItems: cart?.items?.length,
+      total: cart?.total
     });
 
-    // Initialize Stripe with the secret key
-    const stripeInstance = stripe(process.env.STRIPE_SECRET_KEY);
-    
+    // Validate required data
+    if (!cart?.items || !customerInfo?.email || !deliveryInfo?.address) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Missing required data' })
+      };
+    }
+
     // Format line items for Stripe
     const lineItems = cart.items.map(item => ({
       price_data: {
@@ -67,7 +88,7 @@ exports.handler = async (event, context) => {
     };
 
     // Create a checkout session with Stripe
-    const session = await stripeInstance.checkout.sessions.create({
+    const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
