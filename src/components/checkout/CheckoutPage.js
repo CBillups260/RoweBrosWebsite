@@ -755,8 +755,14 @@ const CheckoutPage = () => {
             <h3>Payment Information</h3>
             <div className="review-details">
               <p><strong>Card Holder:</strong> {paymentInfo.cardHolder}</p>
-              <p><strong>Card Number:</strong> **** **** **** {paymentMethod.card.last4}</p>
-              <p><strong>Expiration:</strong> {paymentMethod.card.exp_month}/{paymentMethod.card.exp_year}</p>
+              {paymentMethod && paymentMethod.card ? (
+                <>
+                  <p><strong>Card Number:</strong> **** **** **** {paymentMethod.card.last4}</p>
+                  <p><strong>Expiration:</strong> {paymentMethod.card.exp_month}/{paymentMethod.card.exp_year}</p>
+                </>
+              ) : (
+                <p>Card details will be collected at checkout</p>
+              )}
             </div>
           </div>
         </div>
