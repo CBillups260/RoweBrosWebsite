@@ -433,53 +433,26 @@ const CheckoutPage = () => {
         return;
       }
       
-      // Calculate total amount
-      const subtotal = Math.abs(cart.total);
-      const deliveryFee = 50; // $50 delivery fee
-      const tax = subtotal * 0.07; // 7% tax
-      const total = subtotal + deliveryFee + tax;
+      // Process payment directly
+      console.log('Processing payment...');
+      const result = await processPayment(
+        paymentMethodToUse,
+        cart,
+        customerInfo,
+        deliveryInfo
+      );
       
-      console.log('Order details:', { subtotal, deliveryFee, tax, total });
+      console.log('Payment processed:', result);
       
-      // Create checkout session with Stripe
-      console.log('Creating checkout session...');
-      try {
-        const { sessionId, orderId } = await createCheckoutSession(
-          cart,
-          customerInfo,
-          deliveryInfo
-        );
-        
-        console.log('Checkout session created:', { sessionId, orderId });
-        
-        // Store order ID for confirmation
-        setOrderId(orderId);
-        
-        // Redirect to Stripe Checkout
-        console.log('Redirecting to Stripe checkout...');
-        const stripe = await getStripe();
-        const { error } = await stripe.redirectToCheckout({
-          sessionId
-        });
-        
-        if (error) {
-          console.error('Stripe redirect error:', error);
-          setPaymentError(error.message);
-          setIsProcessing(false);
-          return;
-        }
-        
-        // Clear cart after successful order
-        clearCart();
-        
-        // Show order confirmation
-        setOrderComplete(true);
-        setIsProcessing(false);
-      } catch (error) {
-        console.error('Checkout session error:', error);
-        setPaymentError(`Error creating checkout session: ${error.message}`);
-        setIsProcessing(false);
-      }
+      // Store order ID for confirmation
+      setOrderId(result.orderId);
+      
+      // Clear cart after successful order
+      clearCart();
+      
+      // Show order confirmation
+      setOrderComplete(true);
+      setIsProcessing(false);
     } catch (error) {
       console.error('Error placing order:', error);
       setPaymentError('An error occurred while processing your payment. Please try again.');
