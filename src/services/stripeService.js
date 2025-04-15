@@ -30,77 +30,6 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
       customerEmail: customerInfo.email
     });
 
-    // Create order in Firebase first
-    const orderData = {
-      customerInfo: {
-        email: customerInfo.email || '',
-        name: `${customerInfo.firstName || ''} ${customerInfo.lastName || ''}`.trim() || 'Guest Customer',
-        phone: customerInfo.phone || '',
-        firstName: customerInfo.firstName || '',
-        lastName: customerInfo.lastName || ''
-      },
-      deliveryInfo: {
-        address: deliveryInfo.address || '',
-        city: deliveryInfo.city || '',
-        state: deliveryInfo.state || '',
-        zipCode: deliveryInfo.zipCode || '',
-        deliveryDate: deliveryInfo.deliveryDate || '',
-        deliveryTime: deliveryInfo.deliveryTime || '',
-        specialInstructions: deliveryInfo.specialInstructions || ''
-      },
-      items: cart.items.map(item => {
-        // Clean the price string if it's a string
-        let cleanPrice = item.price;
-        if (typeof cleanPrice === 'string') {
-          // Remove any currency symbols and commas
-          cleanPrice = cleanPrice.replace(/[$,]/g, '');
-        }
-
-        // Ensure price is a valid number
-        const price = parseFloat(cleanPrice) || 0;
-        
-        console.log('Processing item for order:', {
-          name: item.name,
-          rawPrice: item.price,
-          cleanPrice,
-          finalPrice: price
-        });
-
-        return {
-          id: item.id || '',
-          name: item.name || '',
-          price: price,
-          quantity: parseInt(item.quantity) || 0,
-          image: item.image || '',
-          description: item.description || 'Fresh produce from Rowe Bros'
-        };
-      }),
-      subtotal: parseFloat(cart.total) || 0,
-      deliveryFee: 50, // $50 delivery fee
-      tax: 0, // Calculate tax if needed
-      total: (parseFloat(cart.total) || 0) + 50,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      userId: auth.currentUser?.uid || null,
-      isGuest: !auth.currentUser
-    };
-
-    // Validate required fields
-    if (!orderData.customerInfo.email || !orderData.deliveryInfo.address) {
-      throw new Error('Missing required customer information');
-    }
-
-    // Validate numeric fields
-    if (isNaN(orderData.subtotal) || isNaN(orderData.total)) {
-      throw new Error('Invalid price values in cart');
-    }
-
-    console.log('Creating order in Firebase:', orderData);
-
-    // Create an order document in Firestore
-    const orderRef = await addDoc(collection(db, 'orders'), orderData);
-
     // Create a checkout session with Stripe using Netlify function
     const response = await fetch('/.netlify/functions/create-checkout-session', {
       method: 'POST',
@@ -111,7 +40,8 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
         cart,
         customerInfo,
         deliveryInfo,
-        orderId: orderRef.id
+        isGuest: !auth.currentUser,
+        userId: auth.currentUser?.uid || null
       }),
     });
 
@@ -122,15 +52,36 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
     }
 
     const session = await response.json();
-    
-    // Update the order with the session ID
-    await updateDoc(doc(db, 'orders', orderRef.id), {
-      stripeSessionId: session.sessionId,
-    });
-
     return session;
   } catch (error) {
     console.error('Error creating checkout session:', error);
+    throw error;
+  }
+};
+
+// Add a new function to create the order after successful payment
+export const createOrderAfterPayment = async (sessionId) => {
+  try {
+    const response = await fetch('/.netlify/functions/create-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sessionId,
+        userId: auth.currentUser?.uid || null,
+        isGuest: !auth.currentUser
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create order');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating order:', error);
     throw error;
   }
 };

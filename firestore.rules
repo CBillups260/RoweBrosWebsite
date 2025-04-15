@@ -56,9 +56,37 @@ service cloud.firestore {
     
     // Orders collection rules
     match /orders/{orderId} {
-      allow read: if true; // Customers need to see their own orders
-      allow create: if isAuthenticated(); // Authenticated users can create orders
-      allow update, delete: if hasPermission('manage_orders');
+      // Allow anyone to read their own orders
+      allow read: if true;
+      
+      // Allow anyone to create orders (guest checkout)
+      allow create: if 
+        // Basic validation
+        request.resource.data.keys().hasAll(['customerInfo', 'deliveryInfo', 'items', 'status', 'subtotal', 'total']) &&
+        // Status validation
+        request.resource.data.status in ['pending', 'awaiting_payment'] &&
+        // Required fields validation
+        request.resource.data.customerInfo is map &&
+        request.resource.data.deliveryInfo is map &&
+        request.resource.data.items is list &&
+        // Numeric field validation
+        request.resource.data.subtotal is number &&
+        request.resource.data.total is number &&
+        // Guest checkout validation
+        (request.resource.data.isGuest == true || request.auth.uid == request.resource.data.userId);
+      
+      // Allow updates for staff or order owner
+      allow update: if 
+        hasPermission('manage_orders') || 
+        (
+          // Allow status updates for the order owner
+          request.auth.uid == resource.data.userId &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+          request.resource.data.status in ['pending', 'awaiting_payment', 'paid', 'delivered', 'cancelled']
+        );
+      
+      // Only staff can delete orders
+      allow delete: if hasPermission('manage_orders');
     }
     
     // Staff collection rules
