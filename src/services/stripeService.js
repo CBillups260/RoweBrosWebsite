@@ -1,167 +1,130 @@
-import stripeConfig from '../config/stripe-config';
 import { loadStripe } from '@stripe/stripe-js';
-import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { auth } from '../firebase';
 
-// Initialize Stripe
 let stripePromise;
-export const getStripe = () => {
+const getStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(stripeConfig.publishableKey);
+    stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
   }
   return stripePromise;
 };
 
-// Helper function to extract numeric price value
-export const extractPriceNumeric = (priceString) => {
-  if (!priceString) return 0;
-  // Remove any non-numeric characters except for decimal point
-  const numericString = priceString.toString().replace(/[^0-9.]/g, '');
-  // Parse as float and ensure it's positive
-  return Math.abs(parseFloat(numericString) || 0);
+// Helper function to extract numeric price from price string
+const extractPriceNumeric = (price) => {
+  if (typeof price === 'number') return price;
+  if (typeof price === 'string') {
+    const numeric = price.replace(/[^0-9.-]+/g, '');
+    return parseFloat(numeric) || 0;
+  }
+  return 0;
 };
 
-// Create a checkout session
-export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) => {
+// Create a checkout session and redirect to Stripe
+const createCheckoutSession = async (cart, customerInfo, deliveryInfo) => {
   try {
-    console.log('Creating checkout session with:', {
-      cartItems: cart.items.length,
-      customerEmail: customerInfo.email
+    if (!cart || !cart.items || !customerInfo || !deliveryInfo) {
+      throw new Error('Missing required checkout information');
+    }
+
+    // Format line items for Stripe
+    const lineItems = cart.items.map(item => ({
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: item.name,
+          description: item.description || 'Fresh produce from Rowe Bros',
+          images: item.image ? [item.image] : [],
+        },
+        unit_amount: Math.round(parseFloat(item.price) * 100),
+      },
+      quantity: item.quantity,
+    }));
+
+    // Add delivery fee
+    lineItems.push({
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Delivery Fee',
+          description: 'Standard delivery service',
+        },
+        unit_amount: 5000, // $50.00 in cents
+      },
+      quantity: 1,
     });
 
-    // Create a checkout session with Stripe using Netlify function
     const response = await fetch('/.netlify/functions/create-checkout-session', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        cart,
+        lineItems,
         customerInfo,
         deliveryInfo,
-        isGuest: !auth.currentUser,
-        userId: auth.currentUser?.uid || null
+        successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/checkout?canceled=true`,
       }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error response from server:', errorData);
-      throw new Error(errorData.error || 'Network response was not ok');
+    const responseText = await response.text();
+    let responseData;
+
+    try {
+      responseData = JSON.parse(responseText);
+    } catch (error) {
+      console.error('Failed to parse response:', error);
+      console.error('Raw response:', responseText);
+      throw new Error('Invalid response from server');
     }
 
-    const session = await response.json();
-    return session;
+    if (!response.ok) {
+      throw new Error(responseData.error || 'Failed to create checkout session');
+    }
+
+    if (!responseData.sessionId) {
+      throw new Error('No session ID received from server');
+    }
+
+    const stripe = await getStripe();
+    
+    const { error } = await stripe.redirectToCheckout({
+      sessionId: responseData.sessionId,
+    });
+
+    if (error) {
+      throw error;
+    }
   } catch (error) {
     console.error('Error creating checkout session:', error);
     throw error;
   }
 };
 
-// Add a new function to create the order after successful payment
-export const createOrderAfterPayment = async (sessionId) => {
+// Get customer's payment methods
+const getCustomerPaymentMethods = async (customerId) => {
   try {
-    const response = await fetch('/.netlify/functions/create-order', {
+    const response = await fetch('/.netlify/functions/get-payment-methods', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        sessionId,
-        userId: auth.currentUser?.uid || null,
-        isGuest: !auth.currentUser
-      }),
+      body: JSON.stringify({ customerId }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to create order');
+      throw new Error(errorData.error || 'Failed to get payment methods');
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error creating order:', error);
+    console.error('Error getting payment methods:', error);
     throw error;
   }
 };
 
-// Process payment directly
-export const processPayment = async (paymentMethod, cart, customerInfo, deliveryInfo) => {
-  try {
-    console.log('Processing payment with:', {
-      cartItems: cart.items.length,
-      customerEmail: customerInfo.email
-    });
-
-    const response = await fetch('/.netlify/functions/process-payment', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        paymentMethodId: paymentMethod.id,
-        cart,
-        customerInfo,
-        deliveryInfo,
-        isGuest: !auth.currentUser,
-        userId: auth.currentUser?.uid || null
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error response from server:', errorData);
-      throw new Error(errorData.error || 'Network response was not ok');
-    }
-
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error('Error processing payment:', error);
-    throw error;
-  }
-};
-
-// Sync products from Firebase to Stripe
-export const syncProductsToStripe = async (products) => {
-  try {
-    const response = await fetch('/api/sync-products', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ products }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to sync products with Stripe');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error syncing products to Stripe:', error);
-    throw error;
-  }
-};
-
-// Retrieve a customer's payment methods
-export const getCustomerPaymentMethods = async (customerId) => {
-  try {
-    const response = await fetch(`/api/payment-methods?customerId=${customerId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to retrieve payment methods');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error retrieving payment methods:', error);
-    throw error;
-  }
+export {
+  getStripe,
+  createCheckoutSession,
+  getCustomerPaymentMethods,
 };

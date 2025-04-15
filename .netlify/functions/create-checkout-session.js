@@ -9,148 +9,98 @@ console.log('Function environment check:', {
   url: process.env.URL
 });
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
+  // Set CORS headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json',
+  };
+
+  // Handle preflight OPTIONS request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: '',
+    };
+  }
+
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Method Not Allowed' })
+      headers,
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
     };
   }
 
   try {
     // Parse the request body
-    let body;
-    try {
-      body = JSON.parse(event.body);
-    } catch (e) {
-      console.error('Error parsing request body:', e);
+    const body = JSON.parse(event.body);
+    const { lineItems, customerInfo, deliveryInfo, successUrl, cancelUrl } = body;
+
+    // Validate required fields
+    if (!lineItems || !customerInfo || !deliveryInfo) {
       return {
         statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Invalid request body' })
+        headers,
+        body: JSON.stringify({ error: 'Missing required fields' }),
       };
     }
 
-    const { cart, customerInfo, deliveryInfo } = body;
-    
-    console.log('Received checkout request:', { 
-      customerEmail: customerInfo?.email,
-      cartItems: cart?.items?.length,
-      total: cart?.total
-    });
-
-    // Validate required data
-    if (!cart?.items || !customerInfo?.email || !deliveryInfo?.address) {
-      return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Missing required data' })
-      };
-    }
-
-    // Format line items for Stripe
-    const lineItems = cart.items.map(item => {
-      // Log the raw item data for debugging
-      console.log('Processing item:', {
-        name: item.name,
-        rawPrice: item.price,
-        type: typeof item.price
-      });
-
-      // Clean the price string if it's a string
-      let cleanPrice = item.price;
-      if (typeof cleanPrice === 'string') {
-        // Remove any currency symbols and commas
-        cleanPrice = cleanPrice.replace(/[$,]/g, '');
-      }
-
-      // Ensure price is a valid number and convert to cents
-      const priceInCents = Math.round((parseFloat(cleanPrice) || 0) * 100);
-      
-      // Log the processed price
-      console.log('Processed price:', {
-        name: item.name,
-        cleanPrice,
-        priceInCents
-      });
-
-      if (isNaN(priceInCents) || priceInCents <= 0) {
-        throw new Error(`Invalid price for item: ${item.name}. Raw price: ${item.price}, Cleaned price: ${cleanPrice}`);
-      }
-
-      return {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: item.name || 'Unnamed Product',
-            description: item.description || 'Fresh produce from Rowe Bros',
-            images: item.image ? [item.image] : [],
-          },
-          unit_amount: priceInCents,
-        },
-        quantity: parseInt(item.quantity) || 1,
-      };
-    });
-
-    // Add delivery fee as a separate line item
-    lineItems.push({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: 'Delivery Fee',
-          description: 'Standard delivery service',
-        },
-        unit_amount: 5000, // $50.00 in cents
+    // Create a Stripe customer
+    const customer = await stripe.customers.create({
+      name: `${customerInfo.firstName} ${customerInfo.lastName}`,
+      email: customerInfo.email,
+      phone: customerInfo.phone,
+      address: {
+        line1: customerInfo.address.line1,
+        line2: customerInfo.address.line2,
+        city: customerInfo.address.city,
+        state: customerInfo.address.state,
+        postal_code: customerInfo.address.postal_code,
+        country: customerInfo.address.country,
       },
-      quantity: 1,
     });
 
-    // Validate line items
-    if (lineItems.length === 0) {
-      throw new Error('No valid items in cart');
-    }
-
-    // Create metadata for the session
-    const metadata = {
-      customer_name: `${customerInfo.firstName} ${customerInfo.lastName}`,
-      customer_email: customerInfo.email,
-      customer_phone: customerInfo.phone,
-      delivery_address: `${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.state} ${deliveryInfo.zipCode}`,
-      delivery_date: deliveryInfo.deliveryDate,
-      delivery_time: deliveryInfo.deliveryTime,
-    };
-
-    // Create a checkout session with Stripe
+    // Create a checkout session
     const session = await stripe.checkout.sessions.create({
+      customer: customer.id,
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${process.env.URL || 'http://localhost:8888'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.URL || 'http://localhost:8888'}/checkout?canceled=true`,
-      customer_email: customerInfo.email,
-      metadata,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       shipping_address_collection: {
         allowed_countries: ['US'],
       },
+      metadata: {
+        customerId: customer.id,
+        deliveryInstructions: deliveryInfo.instructions || '',
+      },
     });
 
-    // Return the session ID to the client
+    // Return the session ID
     return {
       statusCode: 200,
+      headers,
       body: JSON.stringify({ 
         sessionId: session.id,
-        url: session.url 
-      })
+        customerId: customer.id
+      }),
     };
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    // Log the error
+    console.error('Error:', error);
+
     return {
       statusCode: 500,
+      headers,
       body: JSON.stringify({ 
-        error: 'Error creating checkout session: ' + error.message 
-      })
+        error: error.message || 'Internal server error'
+      }),
     };
   }
 };
