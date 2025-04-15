@@ -87,8 +87,11 @@ const Cart = ({ isOpen, toggleCart }) => {
     });
   };
 
+  // Format currency for display
   const formatCurrency = (amount) => {
-    return `$${amount.toFixed(2)}`;
+    // Ensure amount is a number and is positive
+    const value = typeof amount === 'number' ? Math.abs(amount) : 0;
+    return `$${value.toFixed(2)}`;
   };
 
   return (

@@ -9,7 +9,8 @@ import {
   faShoppingCart,
   faCheck,
   faTimes,
-  faChevronDown
+  faChevronDown,
+  faCalendarAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { useCart } from '../../context/CartContext';
 import PlaceholderImage from '../common/PlaceholderImage';
@@ -25,7 +26,6 @@ const RentalsPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [filteredRentals, setFilteredRentals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cartItems, setCartItems] = useState({});
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState(null);
@@ -172,29 +172,6 @@ const RentalsPage = () => {
 
   const toggleFilters = () => {
     setShowFilters(!showFilters);
-  };
-
-  const handleQuickAdd = (rental) => {
-    // Generate today's date in YYYY-MM-DD format
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    
-    // Add the item to the cart
-    addToCart(rental, formattedDate);
-    
-    // Update local state to show the item was added
-    setCartItems(prev => ({
-      ...prev,
-      [rental.id]: true
-    }));
-    
-    // Reset the "Added" indicator after 2 seconds
-    setTimeout(() => {
-      setCartItems(prev => ({
-        ...prev,
-        [rental.id]: false
-      }));
-    }, 2000);
   };
 
   return (
@@ -347,21 +324,12 @@ const RentalsPage = () => {
                       <Link to={`/rentals/${item.id}`} className="view-details">
                         View Details
                       </Link>
-                      <button 
-                        className={`quick-add ${cartItems[item.id] ? 'added' : ''}`}
-                        onClick={() => handleQuickAdd(item)}
-                        disabled={cartItems[item.id]}
+                      <Link 
+                        to={`/rentals/${item.id}`} 
+                        className="book-now-button"
                       >
-                        {cartItems[item.id] ? (
-                          <>
-                            <FontAwesomeIcon icon={faCheck} /> Added
-                          </>
-                        ) : (
-                          <>
-                            <FontAwesomeIcon icon={faShoppingCart} /> Quick Add
-                          </>
-                        )}
-                      </button>
+                        <FontAwesomeIcon icon={faCalendarAlt} /> Book Now
+                      </Link>
                     </div>
                     <div className="rental-info">
                       <h4>{item.name}</h4>
