@@ -49,8 +49,23 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
         specialInstructions: deliveryInfo.specialInstructions || ''
       },
       items: cart.items.map(item => {
+        // Clean the price string if it's a string
+        let cleanPrice = item.price;
+        if (typeof cleanPrice === 'string') {
+          // Remove any currency symbols and commas
+          cleanPrice = cleanPrice.replace(/[$,]/g, '');
+        }
+
         // Ensure price is a valid number
-        const price = parseFloat(item.price) || 0;
+        const price = parseFloat(cleanPrice) || 0;
+        
+        console.log('Processing item for order:', {
+          name: item.name,
+          rawPrice: item.price,
+          cleanPrice,
+          finalPrice: price
+        });
+
         return {
           id: item.id || '',
           name: item.name || '',

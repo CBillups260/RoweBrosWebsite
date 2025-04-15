@@ -52,10 +52,32 @@ exports.handler = async (event, context) => {
 
     // Format line items for Stripe
     const lineItems = cart.items.map(item => {
+      // Log the raw item data for debugging
+      console.log('Processing item:', {
+        name: item.name,
+        rawPrice: item.price,
+        type: typeof item.price
+      });
+
+      // Clean the price string if it's a string
+      let cleanPrice = item.price;
+      if (typeof cleanPrice === 'string') {
+        // Remove any currency symbols and commas
+        cleanPrice = cleanPrice.replace(/[$,]/g, '');
+      }
+
       // Ensure price is a valid number and convert to cents
-      const priceInCents = Math.round((parseFloat(item.price) || 0) * 100);
+      const priceInCents = Math.round((parseFloat(cleanPrice) || 0) * 100);
+      
+      // Log the processed price
+      console.log('Processed price:', {
+        name: item.name,
+        cleanPrice,
+        priceInCents
+      });
+
       if (isNaN(priceInCents) || priceInCents <= 0) {
-        throw new Error(`Invalid price for item: ${item.name}`);
+        throw new Error(`Invalid price for item: ${item.name}. Raw price: ${item.price}, Cleaned price: ${cleanPrice}`);
       }
 
       return {
