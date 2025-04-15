@@ -18,7 +18,7 @@ import {
 import { useCart } from '../../context/CartContext';
 import { Elements } from '@stripe/react-stripe-js';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { getStripe, createCheckoutSession } from '../../services/stripeService';
+import { getStripe, processPayment } from '../../services/stripeService';
 import '../../styles/checkout.css';
 
 // Stripe Card Element styles
