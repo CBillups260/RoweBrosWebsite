@@ -1,5 +1,5 @@
 // Netlify serverless function for creating a Stripe checkout session
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe');
 
 // Add debug logging for environment variables
 console.log('Function environment check:', {
@@ -26,6 +26,9 @@ exports.handler = async (event, context) => {
       total: cart.total
     });
 
+    // Initialize Stripe with the secret key
+    const stripeInstance = stripe(process.env.STRIPE_SECRET_KEY);
+    
     // Format line items for Stripe
     const lineItems = cart.items.map(item => {
       // Extract price as integer (in cents)
@@ -70,12 +73,12 @@ exports.handler = async (event, context) => {
     };
 
     // Create a checkout session with Stripe
-    const session = await stripe.checkout.sessions.create({
+    const session = await stripeInstance.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${process.env.URL || 'http://localhost:3000'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.URL || 'http://localhost:3000'}/checkout?canceled=true`,
+      success_url: `${process.env.URL || 'http://localhost:8888'}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.URL || 'http://localhost:8888'}/checkout?canceled=true`,
       customer_email: customerInfo.email,
       metadata,
       shipping_address_collection: {
