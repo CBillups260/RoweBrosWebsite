@@ -11,6 +11,24 @@ exports.handler = async (event) => {
   try {
     const { lineItems, customerInfo, deliveryInfo, successUrl, cancelUrl } = JSON.parse(event.body);
 
+    // Log the received data for debugging
+    console.log('Received data:', {
+      lineItemsCount: lineItems ? lineItems.length : 0,
+      customerInfo: customerInfo,
+      deliveryInfo: deliveryInfo,
+      hasDeliveryAddress: deliveryInfo && deliveryInfo.address,
+    });
+
+    // Safely handle address fields
+    const address = deliveryInfo && deliveryInfo.address ? {
+      line1: deliveryInfo.address.line1 || '',
+      line2: deliveryInfo.address.line2 || '',
+      city: deliveryInfo.address.city || '',
+      state: deliveryInfo.address.state || '',
+      postal_code: deliveryInfo.address.postal_code || '',
+      country: deliveryInfo.address.country || 'US'
+    } : {};
+
     // Create a Stripe customer if needed
     let customer;
     if (customerInfo.email) {
@@ -18,9 +36,10 @@ exports.handler = async (event) => {
         email: customerInfo.email,
         name: customerInfo.fullName,
         phone: customerInfo.phone,
+        address,
         metadata: {
-          deliveryAddress: deliveryInfo.address,
-          deliveryInstructions: deliveryInfo.instructions,
+          deliveryAddress: JSON.stringify(address),
+          deliveryInstructions: deliveryInfo.instructions || '',
         },
       });
     }
@@ -36,8 +55,8 @@ exports.handler = async (event) => {
       metadata: {
         customerName: customerInfo.fullName,
         customerEmail: customerInfo.email,
-        deliveryAddress: deliveryInfo.address,
-        deliveryInstructions: deliveryInfo.instructions,
+        deliveryAddress: JSON.stringify(address),
+        deliveryInstructions: deliveryInfo.instructions || '',
       },
     });
 
@@ -49,7 +68,10 @@ exports.handler = async (event) => {
     console.error('Error creating checkout session:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ 
+        error: error.message,
+        details: error.details || 'Check server logs for more info'
+      }),
     };
   }
 };
