@@ -35,4 +35,6 @@ server/serviceAccountKey.json
 .env.*
 
 # Local Netlify folder
-.netlify
+.netlify/*
+!.netlify/functions/
+!.netlify/functions/*.js

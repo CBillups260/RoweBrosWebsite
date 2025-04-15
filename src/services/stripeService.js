@@ -86,6 +86,43 @@ export const createOrderAfterPayment = async (sessionId) => {
   }
 };
 
+// Process payment directly
+export const processPayment = async (paymentMethod, cart, customerInfo, deliveryInfo) => {
+  try {
+    console.log('Processing payment with:', {
+      cartItems: cart.items.length,
+      customerEmail: customerInfo.email
+    });
+
+    const response = await fetch('/.netlify/functions/process-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        paymentMethodId: paymentMethod.id,
+        cart,
+        customerInfo,
+        deliveryInfo,
+        isGuest: !auth.currentUser,
+        userId: auth.currentUser?.uid || null
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error response from server:', errorData);
+      throw new Error(errorData.error || 'Network response was not ok');
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error processing payment:', error);
+    throw error;
+  }
+};
+
 // Sync products from Firebase to Stripe
 export const syncProductsToStripe = async (products) => {
   try {
@@ -104,32 +141,6 @@ export const syncProductsToStripe = async (products) => {
     return await response.json();
   } catch (error) {
     console.error('Error syncing products to Stripe:', error);
-    throw error;
-  }
-};
-
-// Process payment with Stripe Elements
-export const processPayment = async (paymentMethod, amount, orderId) => {
-  try {
-    const response = await fetch('/api/process-payment', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        paymentMethodId: paymentMethod.id,
-        amount: Math.round(amount * 100), // Convert to cents
-        orderId,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Payment processing failed');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error processing payment:', error);
     throw error;
   }
 };
