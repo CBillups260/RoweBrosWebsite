@@ -1,66 +1,88 @@
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, addDoc } = require('firebase/firestore');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const admin = require('firebase-admin');
 
-// Initialize Firebase
-const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Initialize Firebase Admin
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault()
+  });
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+    return {
+      statusCode: 405,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'Method Not Allowed' })
+    };
   }
 
   try {
-    const { sessionId, userId, isGuest } = JSON.parse(event.body);
+    const { paymentIntentId, userId, customerInfo, cart, deliveryInfo } = JSON.parse(event.body);
 
-    // Retrieve the Stripe session to get the order details
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items']
-    });
+    // --- Data Validation and Sanitization ---
+    if (!paymentIntentId || !customerInfo || !cart || !deliveryInfo) {
+      throw new Error('Missing required data in request body');
+    }
+    if (!cart.items || !Array.isArray(cart.items) || typeof cart.total !== 'number') {
+       throw new Error('Invalid cart structure');
+    }
+    if (!customerInfo.firstName || !customerInfo.lastName || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
+       throw new Error('Invalid customerInfo structure');
+    }
+    if (!customerInfo.address.line1 || !customerInfo.address.city || !customerInfo.address.state || !customerInfo.address.postal_code || !customerInfo.address.country) {
+      throw new Error('Invalid customerInfo address structure');
+    }
 
-    // Create the order in Firestore
+    // Ensure all monetary values are valid numbers and in dollars
+    const subtotal = Math.abs(Number(cart.total) || 0);
+    const deliveryFee = 50.00; // Use float for consistency
+    const taxRate = 0.07;
+    const tax = subtotal * taxRate;
+    const total = subtotal + deliveryFee + tax;
+
+    // --- Create order data for Firestore ---
     const orderData = {
+      userId: userId || null,
       customerInfo: {
-        email: session.customer_details.email,
-        name: session.customer_details.name || 'Guest Customer',
-        phone: session.customer_details.phone || '',
+        name: `${customerInfo.firstName || ''} ${customerInfo.lastName || ''}`.trim(),
+        email: customerInfo.email || '',
+        phone: customerInfo.phone || '',
+        address: {
+          line1: customerInfo.address.line1 || '',
+          line2: customerInfo.address.line2 || '',
+          city: customerInfo.address.city || '',
+          state: customerInfo.address.state || '',
+          postal_code: customerInfo.address.postal_code || '',
+          country: customerInfo.address.country || ''
+        }
       },
-      deliveryInfo: session.metadata.deliveryInfo ? JSON.parse(session.metadata.deliveryInfo) : {},
-      items: session.line_items.data.map(item => ({
-        id: item.price.product.metadata.productId || '',
-        name: item.description,
-        price: item.price.unit_amount / 100,
-        quantity: item.quantity,
-        image: item.price.product.images[0] || '',
-        description: item.price.product.description || 'Fresh produce from Rowe Bros'
+      items: cart.items.map(item => ({
+        productId: item.id || '',
+        name: item.name || 'Unknown Item',
+        price: Math.abs(Number(item.price) || 0), // Ensure price is a positive number
+        quantity: Math.max(1, Number(item.quantity) || 1), // Ensure quantity is at least 1
+        image: item.image || ''
       })),
-      subtotal: session.amount_subtotal / 100,
-      deliveryFee: 50,
-      tax: 0,
-      total: session.amount_total / 100,
-      status: 'paid',
-      stripeSessionId: sessionId,
-      stripePaymentIntentId: session.payment_intent,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      userId: userId,
-      isGuest: isGuest
+      subtotal: Number(subtotal.toFixed(2)),
+      tax: Number(tax.toFixed(2)),
+      shipping: deliveryFee,
+      total: Number(total.toFixed(2)), // Ensure 2 decimal places
+      status: 'pending', // Default status
+      paymentStatus: 'paid', // Assume payment succeeded if this function is called
+      paymentIntentId: paymentIntentId,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
     };
 
-    const orderRef = await addDoc(collection(db, 'orders'), orderData);
+    console.log("Attempting to create order with data:", JSON.stringify(orderData, null, 2));
+
+    // Create order in Firestore
+    const orderRef = await admin.firestore().collection('orders').add(orderData);
+    console.log("Order created successfully with ID:", orderRef.id);
 
     return {
       statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         orderId: orderRef.id,
         message: 'Order created successfully'
@@ -68,9 +90,16 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error('Error creating order:', error);
+    console.error('Error details:', error.stack);
+    // Log the received body to help debug
+    console.error('Received event body:', event.body);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        error: `Error creating order: ${error.message}`,
+        details: error.stack
+      })
     };
   }
 }; 

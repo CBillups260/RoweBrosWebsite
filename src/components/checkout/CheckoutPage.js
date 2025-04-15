@@ -18,7 +18,12 @@ import {
 import { useCart } from '../../context/CartContext';
 import { Elements } from '@stripe/react-stripe-js';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { getStripe, processPayment } from '../../services/stripeService';
+import { 
+  createCheckoutSession,
+  extractPriceNumeric,
+  getStripe
+} from '../../services/stripeService';
+import { auth } from '../../firebase';
 import '../../styles/checkout.css';
 
 // Stripe Card Element styles
@@ -433,19 +438,20 @@ const CheckoutPage = () => {
         return;
       }
       
-      // Process payment directly
+      // Process payment using createCheckoutSession
       console.log('Processing payment...');
-      const result = await processPayment(
-        paymentMethodToUse,
+      const { paymentIntentId, clientSecret, orderId } = await createCheckoutSession(
         cart,
         customerInfo,
-        deliveryInfo
+        deliveryInfo,
+        auth.currentUser?.uid || null,
+        !auth.currentUser
       );
       
-      console.log('Payment processed:', result);
+      console.log('Payment processed:', { paymentIntentId, clientSecret, orderId });
       
       // Store order ID for confirmation
-      setOrderId(result.orderId);
+      setOrderId(orderId);
       
       // Clear cart after successful order
       clearCart();
