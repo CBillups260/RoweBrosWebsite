@@ -33,37 +33,46 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
     // Create order in Firebase first
     const orderData = {
       customerInfo: {
-        email: customerInfo.email,
-        name: customerInfo.name,
-        phone: customerInfo.phone
+        email: customerInfo.email || '',
+        name: `${customerInfo.firstName || ''} ${customerInfo.lastName || ''}`.trim() || 'Guest Customer',
+        phone: customerInfo.phone || '',
+        firstName: customerInfo.firstName || '',
+        lastName: customerInfo.lastName || ''
       },
       deliveryInfo: {
-        address: deliveryInfo.address,
-        city: deliveryInfo.city,
-        state: deliveryInfo.state,
-        zipCode: deliveryInfo.zipCode,
-        deliveryDate: deliveryInfo.deliveryDate,
-        deliveryTime: deliveryInfo.deliveryTime,
-        specialInstructions: deliveryInfo.specialInstructions
+        address: deliveryInfo.address || '',
+        city: deliveryInfo.city || '',
+        state: deliveryInfo.state || '',
+        zipCode: deliveryInfo.zipCode || '',
+        deliveryDate: deliveryInfo.deliveryDate || '',
+        deliveryTime: deliveryInfo.deliveryTime || '',
+        specialInstructions: deliveryInfo.specialInstructions || ''
       },
       items: cart.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-        description: item.description || 'Fresh produce from Rowe Bros' // Add default description if none exists
+        id: item.id || '',
+        name: item.name || '',
+        price: item.price || 0,
+        quantity: item.quantity || 0,
+        image: item.image || '',
+        description: item.description || 'Fresh produce from Rowe Bros'
       })),
-      subtotal: cart.total,
+      subtotal: cart.total || 0,
       deliveryFee: 50, // $50 delivery fee
       tax: 0, // Calculate tax if needed
-      total: cart.total + 50,
+      total: (cart.total || 0) + 50,
       status: 'pending',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       userId: auth.currentUser?.uid || null,
-      isGuest: !auth.currentUser,
+      isGuest: !auth.currentUser
     };
+
+    // Validate required fields
+    if (!orderData.customerInfo.email || !orderData.deliveryInfo.address) {
+      throw new Error('Missing required customer information');
+    }
+
+    console.log('Creating order in Firebase:', orderData);
 
     // Create an order document in Firestore
     const orderRef = await addDoc(collection(db, 'orders'), orderData);
