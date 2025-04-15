@@ -12,40 +12,21 @@ export const getStripe = () => {
   return stripePromise;
 };
 
+// Helper function to extract numeric price value
+export const extractPriceNumeric = (priceString) => {
+  if (!priceString) return 0;
+  // Remove any non-numeric characters except for decimal point
+  const numericString = priceString.toString().replace(/[^0-9.]/g, '');
+  // Parse as float and ensure it's positive
+  return Math.abs(parseFloat(numericString) || 0);
+};
+
 // Create a checkout session
 export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) => {
   try {
-    // Format line items for Stripe
-    const lineItems = cart.items.map(item => {
-      return {
-        price_data: {
-          currency: stripeConfig.currency || 'usd',
-          product_data: {
-            name: item.name,
-            images: item.mainImage ? [item.mainImage] : [],
-            metadata: {
-              id: item.id,
-              date: item.date,
-              time: item.time
-            }
-          },
-          unit_amount: Math.round(extractPriceNumeric(item.price) * 100), // Convert to cents
-        },
-        quantity: item.quantity,
-      };
-    });
-
-    // Add delivery fee as a separate line item
-    lineItems.push({
-      price_data: {
-        currency: stripeConfig.currency || 'usd',
-        product_data: {
-          name: 'Delivery Fee',
-          description: `Delivery to ${deliveryInfo.address}, ${deliveryInfo.city}, ${deliveryInfo.state} ${deliveryInfo.zipCode}`,
-        },
-        unit_amount: 5000, // $50.00 in cents
-      },
-      quantity: 1,
+    console.log('Creating checkout session with:', {
+      cartItems: cart.items.length,
+      customerEmail: customerInfo.email
     });
 
     // Create an order document in Firestore
@@ -68,40 +49,31 @@ export const createCheckoutSession = async (cart, customerInfo, deliveryInfo) =>
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        lineItems,
-        customerEmail: customerInfo.email,
-        orderId: orderRef.id,
-        metadata: {
-          orderId: orderRef.id,
-        },
-        success_url: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}&order_id=${orderRef.id}`,
-        cancel_url: `${window.location.origin}/checkout?canceled=true&order_id=${orderRef.id}`,
+        cart,
+        customerInfo,
+        deliveryInfo,
+        orderId: orderRef.id
       }),
     });
 
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      const errorData = await response.json();
+      console.error('Error response from server:', errorData);
+      throw new Error(errorData.error || 'Network response was not ok');
     }
 
     const session = await response.json();
-
+    
     // Update the order with the session ID
     await updateDoc(doc(db, 'orders', orderRef.id), {
-      stripeSessionId: session.id
+      stripeSessionId: session.sessionId,
     });
 
-    return { sessionId: session.id, orderId: orderRef.id };
+    return session;
   } catch (error) {
     console.error('Error creating checkout session:', error);
     throw error;
   }
-};
-
-// Helper function to extract numeric price from price string
-const extractPriceNumeric = (priceString) => {
-  if (!priceString) return 0;
-  const match = priceString.match(/\$?(\d+(?:\.\d+)?)/);
-  return match ? parseFloat(match[1]) : 0;
 };
 
 // Sync products from Firebase to Stripe
