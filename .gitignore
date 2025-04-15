@@ -33,3 +33,6 @@ server/serviceAccountKey.json
 
 # environment variables
 .env.*
+
+# Local Netlify folder
+.netlify
