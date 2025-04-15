@@ -54,15 +54,11 @@ const StripePaymentForm = ({ paymentInfo, handlePaymentInfoChange, errors, onSub
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!stripe || !elements) {
       return;
     }
-    
     setProcessing(true);
-    
     const cardElement = elements.getElement(CardElement);
-    
     // Create payment method
     const { error, paymentMethod } = await stripe.createPaymentMethod({
       type: 'card',
@@ -71,20 +67,19 @@ const StripePaymentForm = ({ paymentInfo, handlePaymentInfoChange, errors, onSub
         name: paymentInfo.cardHolder,
       },
     });
-    
+    console.log('[StripePaymentForm] Created paymentMethod:', paymentMethod, 'Error:', error);
     if (error) {
       setCardError(error.message);
       setProcessing(false);
       return;
     }
-    
     // Pass the payment method to the parent component
     onSubmit(paymentMethod);
     setProcessing(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="stripe-payment-form">
+    <form className="stripe-payment-form" onSubmit={handleSubmit} autoComplete="off">
       <div className="form-group full-width">
         <label htmlFor="cardHolder">
           <FontAwesomeIcon icon={faUser} /> Card Holder Name
@@ -125,6 +120,24 @@ const StripePaymentForm = ({ paymentInfo, handlePaymentInfoChange, errors, onSub
           <label htmlFor="savePaymentInfo">Save payment information for future orders</label>
         </div>
       </div>
+      <button
+        type="submit"
+        className="btn btn-primary stripe-submit-btn"
+        disabled={processing}
+        style={{
+          width: '100%',
+          background: '#fff',
+          color: '#111',
+          border: '2px solid #111',
+          fontWeight: 700,
+          fontSize: '1.1rem',
+          padding: '0.9em',
+          marginTop: '1.2em',
+          cursor: processing ? 'not-allowed' : 'pointer',
+        }}
+      >
+        {processing ? 'Processing...' : 'Continue'}
+      </button>
     </form>
   );
 };
@@ -379,7 +392,15 @@ const CheckoutPage = () => {
   };
   
   const handlePaymentSubmit = (paymentMethodObj) => {
+    console.log('[CheckoutPage] Payment method received in handlePaymentSubmit:', paymentMethodObj);
     setPaymentMethod(paymentMethodObj);
+    // Store payment method in session storage to persist between steps
+    try {
+      sessionStorage.setItem('roweBros_paymentMethod', JSON.stringify(paymentMethodObj));
+      console.log('[CheckoutPage] Payment method saved to sessionStorage:', paymentMethodObj);
+    } catch (error) {
+      console.error('[CheckoutPage] Error storing payment method:', error);
+    }
     goToNextStep();
   };
   
@@ -389,9 +410,25 @@ const CheckoutPage = () => {
       setIsProcessing(true);
       setPaymentError('');
       
-      if (!paymentMethod) {
-        console.log('Payment method missing');
-        setPaymentError('Payment method is required');
+      // Try to load payment method from session storage if not in state
+      let paymentMethodToUse = paymentMethod;
+      console.log('[CheckoutPage] Payment method at start of handlePlaceOrder:', paymentMethodToUse);
+      if (!paymentMethodToUse) {
+        try {
+          const savedPaymentMethod = sessionStorage.getItem('roweBros_paymentMethod');
+          if (savedPaymentMethod) {
+            paymentMethodToUse = JSON.parse(savedPaymentMethod);
+            setPaymentMethod(paymentMethodToUse);
+            console.log('[CheckoutPage] Loaded payment method from session storage for order placement:', paymentMethodToUse);
+          }
+        } catch (error) {
+          console.error('[CheckoutPage] Error loading payment method from session storage:', error);
+        }
+      }
+      
+      if (!paymentMethodToUse) {
+        console.log('[CheckoutPage] Payment method missing at order placement');
+        setPaymentError('Payment method is required. Please go back to the payment step and enter your card details.');
         setIsProcessing(false);
         return;
       }
@@ -847,6 +884,50 @@ const CheckoutPage = () => {
     );
   };
 
+  const renderNavigationButtons = () => {
+    // Only show navigation buttons if not on payment step (step 3)
+    if (activeStep === 3) {
+      return null;
+    }
+    return (
+      <div className="checkout-navigation">
+        {activeStep > 1 && (
+          <button onClick={goToPrevStep} className="prev-button" disabled={isProcessing}>
+            Back
+          </button>
+        )}
+        
+        {activeStep < 4 ? (
+          <button onClick={goToNextStep} className="next-button" disabled={isProcessing}>
+            Continue <FontAwesomeIcon icon={faChevronRight} />
+          </button>
+        ) : (
+          <button 
+            onClick={handlePlaceOrder} 
+            className="place-order-button" 
+            disabled={isProcessing}
+          >
+            {isProcessing ? 'Processing...' : 'Place Order'} 
+            {!isProcessing && <FontAwesomeIcon icon={faCheck} />}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  useEffect(() => {
+    // Load saved payment method from session storage on component mount
+    try {
+      const savedPaymentMethod = sessionStorage.getItem('roweBros_paymentMethod');
+      if (savedPaymentMethod) {
+        setPaymentMethod(JSON.parse(savedPaymentMethod));
+        console.log('[CheckoutPage] Loaded saved payment method from session storage:', savedPaymentMethod);
+      }
+    } catch (error) {
+      console.error('[CheckoutPage] Error loading saved payment method:', error);
+    }
+  }, []);
+
   return (
     <div className="checkout-page">
       <div className="container">
@@ -938,28 +1019,7 @@ const CheckoutPage = () => {
               </div>
             )}
             
-            <div className="checkout-navigation">
-              {activeStep > 1 && (
-                <button onClick={goToPrevStep} className="prev-button" disabled={isProcessing}>
-                  Back
-                </button>
-              )}
-              
-              {activeStep < 4 ? (
-                <button onClick={goToNextStep} className="next-button" disabled={isProcessing}>
-                  Continue <FontAwesomeIcon icon={faChevronRight} />
-                </button>
-              ) : (
-                <button 
-                  onClick={handlePlaceOrder} 
-                  className="place-order-button" 
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? 'Processing...' : 'Place Order'} 
-                  {!isProcessing && <FontAwesomeIcon icon={faCheck} />}
-                </button>
-              )}
-            </div>
+            {renderNavigationButtons()}
           </>
         )}
       </div>
