@@ -9,7 +9,8 @@ import {
   faBars,
   faUser,
   faSignOutAlt,
-  faUserCog
+  faUserCog,
+  faEdit
 } from '@fortawesome/free-solid-svg-icons';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -85,6 +86,19 @@ const Header = () => {
     }
   };
 
+  useEffect(() => {
+    // Reset body overflow when component unmounts
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mobileMenuActive) {
+      document.body.style.overflow = 'auto';
+    }
+  }, [mobileMenuActive]);
+
   const changeLocation = (locationName) => {
     setCurrentLocation(locationName);
     setLocationDropdownActive(false);
@@ -132,18 +146,22 @@ const Header = () => {
         {/* Mobile Motto - Only visible on mobile */}
         <div className="mobile-motto">We bring the party to you!</div>
         
-        {/* Cart icon for mobile */}
-        <div className="mobile-cart-icon" onClick={toggleCartDropdown}>
-          <div className="cart-icon" aria-label="Open shopping cart">
-            <FontAwesomeIcon icon={faShoppingCart} />
-            {cart.itemCount > 0 && (
-              <span className="cart-count">{cart.itemCount}</span>
-            )}
+        {/* Mobile actions container */}
+        <div className="mobile-actions">
+          {/* Cart icon for mobile */}
+          <div className="mobile-cart-icon" onClick={toggleCartDropdown}>
+            <div className="cart-icon" aria-label="Open shopping cart">
+              <FontAwesomeIcon icon={faShoppingCart} />
+              {cart.itemCount > 0 && (
+                <span className="cart-count">{cart.itemCount}</span>
+              )}
+            </div>
           </div>
-        </div>
-        
-        <div className="mobile-menu-button" onClick={toggleMobileMenu}>
-          <FontAwesomeIcon icon={mobileMenuActive ? faTimes : faBars} />
+          
+          {/* Mobile menu toggle button */}
+          <div className="mobile-menu-button" onClick={toggleMobileMenu}>
+            <FontAwesomeIcon icon={mobileMenuActive ? faTimes : faBars} />
+          </div>
         </div>
         
         {/* Mobile Menu Backdrop */}
@@ -326,6 +344,17 @@ const Header = () => {
                             <div className="location-details">
                               <span className="location-name">My Dashboard</span>
                               <span className="location-address">Manage your account</span>
+                            </div>
+                          </Link>
+                          <Link 
+                            to="/dashboard" 
+                            className="location-option"
+                            onClick={() => setUserDropdownActive(false)}
+                          >
+                            <FontAwesomeIcon icon={faEdit} />
+                            <div className="location-details">
+                              <span className="location-name">Edit Profile</span>
+                              <span className="location-address">Update your information</span>
                             </div>
                           </Link>
                           <button 

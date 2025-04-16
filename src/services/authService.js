@@ -158,7 +158,29 @@ export const getCurrentUser = () => {
               return;
             }
           } catch (error) {
-            console.error('Error getting staff data:', error);
+            console.error('Error checking staff data:', error);
+            // Continue checking if admin
+          }
+          
+          // Check if user is in admins collection
+          try {
+            const adminRef = doc(db, 'admins', user.uid);
+            const adminDoc = await getDoc(adminRef);
+            
+            if (adminDoc.exists() && adminDoc.data().isAdmin) {
+              resolve({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || adminDoc.data().email?.split('@')[0],
+                role: 'Admin',
+                permissions: ['manage_staff', 'manage_products', 'manage_orders', 'manage_categories'],
+                isStaff: true,
+                isAdmin: true
+              });
+              return;
+            }
+          } catch (error) {
+            console.error('Error checking admin data:', error);
             // Continue checking if regular user
           }
           
@@ -218,19 +240,19 @@ export const resetPassword = async (email) => {
 // Get staff data by auth UID
 export const getStaffData = async (authUid) => {
   try {
-    // Query staff collection to find the staff with matching authUid
-    const staffRef = doc(db, staffCollection, authUid);
-    const staffDoc = await getDoc(staffRef);
-    
-    if (staffDoc.exists()) {
+    const staffRef = collection(db, staffCollection);
+    const q = query(staffRef, where('authUid', '==', authUid));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      const staffDoc = snapshot.docs[0];
+      const data = staffDoc.data();
       return {
         id: staffDoc.id,
-        ...staffDoc.data(),
-        joinDate: staffDoc.data().joinDate?.toDate(),
-        updatedAt: staffDoc.data().updatedAt?.toDate()
+        ...data,
+        joinDate: data.joinDate?.toDate(),
+        updatedAt: data.updatedAt?.toDate()
       };
     }
-    
     return null;
   } catch (error) {
     console.error('Error getting staff data:', error);
@@ -300,5 +322,83 @@ export const getRoles = async () => {
   } catch (error) {
     console.error('Error getting roles:', error);
     return [];
+  }
+};
+
+// Handle Google sign-in for staff members
+export const handleGoogleSignIn = async (user) => {
+  if (!user) return null;
+  
+  try {
+    // Check if user is in staff collection by email
+    const staffRef = collection(db, staffCollection);
+    const q = query(staffRef, where("email", "==", user.email));
+    const snapshot = await getDocs(q);
+    
+    if (!snapshot.empty) {
+      const staffDoc = snapshot.docs[0];
+      const staffData = staffDoc.data();
+      
+      // Check if staff is active
+      if (staffData.status !== 'Active') {
+        throw new Error('Your account is inactive. Please contact an administrator.');
+      }
+      
+      // Get role data if roleId exists
+      let roleData = null;
+      if (staffData.roleId) {
+        try {
+          const roleRef = doc(db, rolesCollection, staffData.roleId);
+          const roleDoc = await getDoc(roleRef);
+          if (roleDoc.exists()) {
+            roleData = {
+              id: roleDoc.id,
+              ...roleDoc.data()
+            };
+          }
+        } catch (roleError) {
+          console.error('Error fetching role data:', roleError);
+        }
+      }
+      
+      // Combine permissions from role and direct permissions
+      const rolePermissions = roleData?.permissions || [];
+      const directPermissions = staffData.permissions || [];
+      const allPermissions = [...new Set([...rolePermissions, ...directPermissions])];
+      
+      return {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || staffData.name,
+        role: staffData.role,
+        roleId: staffData.roleId,
+        roleName: roleData?.name || staffData.role,
+        permissions: allPermissions,
+        staffId: staffDoc.id,
+        isStaff: true
+      };
+    }
+    
+    // Check if user is in admins collection
+    const adminRef = doc(db, 'admins', user.uid);
+    const adminDoc = await getDoc(adminRef);
+    
+    if (adminDoc.exists() && adminDoc.data().isAdmin) {
+      return {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || adminDoc.data().email?.split('@')[0],
+        role: 'Admin',
+        permissions: ['manage_staff', 'manage_products', 'manage_orders', 'manage_categories'],
+        isStaff: true,
+        isAdmin: true
+      };
+    }
+    
+    // Not a staff member or admin
+    return null;
+  } catch (error) {
+    console.error('Error handling Google sign-in:', error);
+    throw error;
   }
 };

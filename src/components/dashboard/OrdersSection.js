@@ -1,70 +1,113 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faFileDownload, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faFileDownload, faSearch, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { useAuth } from '../../context/AuthContext';
 
 const OrdersSection = () => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState(null);
+  const { currentUser } = useAuth();
   
   useEffect(() => {
-    // In a real app, you would fetch orders from Firebase
-    // For now, we'll use mock data
-    const fetchOrders = () => {
-      setIsLoading(true);
-      
-      // Simulate API call
-      setTimeout(() => {
-        const mockOrders = [
-          {
-            id: 'ORDER-123456',
-            date: '2025-04-01',
-            total: 249.99,
-            status: 'Completed',
-            items: [
-              { id: 1, name: 'Bounce House', quantity: 1, price: 199.99 },
-              { id: 2, name: 'Cotton Candy Machine', quantity: 1, price: 50.00 }
-            ]
-          },
-          {
-            id: 'ORDER-123457',
-            date: '2025-03-15',
-            total: 349.99,
-            status: 'Completed',
-            items: [
-              { id: 3, name: 'Water Slide', quantity: 1, price: 299.99 },
-              { id: 4, name: 'Popcorn Machine', quantity: 1, price: 50.00 }
-            ]
-          },
-          {
-            id: 'ORDER-123458',
-            date: '2025-02-28',
-            total: 149.99,
-            status: 'Cancelled',
-            items: [
-              { id: 5, name: 'Bubble Machine', quantity: 1, price: 49.99 },
-              { id: 6, name: 'Party Tent', quantity: 1, price: 100.00 }
-            ]
-          }
-        ];
-        
-        setOrders(mockOrders);
+    const fetchOrders = async () => {
+      if (!currentUser?.uid) {
         setIsLoading(false);
-      }, 1000);
+        return;
+      }
+      
+      setIsLoading(true);
+      setError(null);
+      
+      console.log('Current user:', currentUser);
+      console.log('Fetching orders for user ID:', currentUser.uid);
+      console.log('User email:', currentUser.email);
+      
+      try {
+        // Get all orders and filter client-side for debugging
+        const ordersRef = collection(db, 'orders');
+        const ordersSnapshot = await getDocs(ordersRef);
+        
+        console.log('Total orders in database:', ordersSnapshot.size);
+        
+        if (ordersSnapshot.empty) {
+          console.log('No orders found in the database');
+          setOrders([]);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Transform all orders for inspection
+        const allOrders = ordersSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            date: data.createdAt?.toDate?.() || new Date(),
+            total: data.total || 0,
+            subtotal: data.subtotal || 0,
+            status: data.status || 'Processing',
+            items: data.items || [],
+            payment: data.payment || {},
+            delivery: data.delivery || {},
+            customer: data.customer || {},
+            customerId: data.customerId,
+            customerUid: data.customerUid,
+            userId: data.userId,
+            uid: data.uid
+          };
+        });
+        
+        console.log('All orders:', allOrders);
+        
+        // Filter orders that match this user by any possible ID field
+        const userOrders = allOrders.filter(order => {
+          const possibleMatches = [
+            order.customerId === currentUser.uid,
+            order.customerUid === currentUser.uid,
+            order.userId === currentUser.uid,
+            order.uid === currentUser.uid,
+            order.customer?.customerId === currentUser.uid,
+            order.customer?.uid === currentUser.uid,
+            order.customer?.email === currentUser.email
+          ];
+          
+          console.log(`Order ${order.id} match status:`, possibleMatches);
+          
+          return possibleMatches.some(match => match === true);
+        });
+        
+        console.log('Filtered orders for current user:', userOrders);
+        
+        // Sort by date (newest first)
+        userOrders.sort((a, b) => b.date - a.date);
+        
+        setOrders(userOrders);
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+        setError('Failed to load your orders. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
     };
     
     fetchOrders();
-  }, []);
+  }, [currentUser]);
   
   const filteredOrders = orders.filter(order => 
     order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    order.items.some(item => 
+      item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
   
-  const formatDate = (dateString) => {
+  const formatDate = (date) => {
+    if (!date || !(date instanceof Date)) return 'N/A';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    return date.toLocaleDateString(undefined, options);
   };
   
   const getStatusClass = (status) => {
@@ -74,12 +117,27 @@ const OrdersSection = () => {
       case 'processing':
         return 'status-processing';
       case 'shipped':
+      case 'delivered':
         return 'status-shipped';
       case 'cancelled':
         return 'status-cancelled';
+      case 'pending':
+        return 'status-pending';
       default:
         return '';
     }
+  };
+  
+  const handleViewOrder = (orderId) => {
+    // In a real app, navigate to order details page
+    console.log('View order:', orderId);
+    // You could implement a modal or navigation to a details page
+  };
+  
+  const handleDownloadReceipt = (order) => {
+    // In a real app, generate and download a receipt
+    console.log('Download receipt for order:', order.id);
+    // You could implement PDF generation here
   };
   
   return (
@@ -99,7 +157,19 @@ const OrdersSection = () => {
       </div>
       
       {isLoading ? (
-        <div className="loading">Loading your orders...</div>
+        <div className="loading">
+          <FontAwesomeIcon icon={faSpinner} spin /> Loading your orders...
+        </div>
+      ) : error ? (
+        <div className="error-message">
+          {error}
+          <button 
+            className="retry-button"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
+        </div>
       ) : filteredOrders.length > 0 ? (
         <div className="orders-list">
           <div className="orders-table">
@@ -113,7 +183,7 @@ const OrdersSection = () => {
             
             {filteredOrders.map(order => (
               <div key={order.id} className="order-row">
-                <div className="order-cell">{order.id}</div>
+                <div className="order-cell">{order.id.substring(0, 8).toUpperCase()}</div>
                 <div className="order-cell">{formatDate(order.date)}</div>
                 <div className="order-cell">${order.total.toFixed(2)}</div>
                 <div className="order-cell">
@@ -122,10 +192,16 @@ const OrdersSection = () => {
                   </span>
                 </div>
                 <div className="order-cell actions">
-                  <button className="action-button view">
+                  <button 
+                    className="action-button view"
+                    onClick={() => handleViewOrder(order.id)}
+                  >
                     <FontAwesomeIcon icon={faEye} /> View
                   </button>
-                  <button className="action-button download">
+                  <button 
+                    className="action-button download"
+                    onClick={() => handleDownloadReceipt(order)}
+                  >
                     <FontAwesomeIcon icon={faFileDownload} /> Receipt
                   </button>
                 </div>

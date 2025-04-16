@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faSave, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faSave, faTimes, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { updateProfile, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { auth } from '../../firebase';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { useAuth } from '../../context/AuthContext';
 
 const ProfileSection = ({ user }) => {
+  const { currentUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordUpdate, setShowPasswordUpdate] = useState(false);
   const [profileData, setProfileData] = useState({
-    displayName: user.displayName || '',
-    email: user.email || '',
+    displayName: user?.displayName || '',
+    email: user?.email || '',
+    phone: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
@@ -17,6 +22,46 @@ const ProfileSection = ({ user }) => {
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [userData, setUserData] = useState(null);
+
+  // Fetch user data from Firestore
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!currentUser?.uid) return;
+      
+      try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setUserData(data);
+          setProfileData(prevData => ({
+            ...prevData,
+            displayName: user?.displayName || data.displayName || '',
+            email: user?.email || data.email || '',
+            phone: data.phone || ''
+          }));
+        } else {
+          // Create user document if it doesn't exist
+          const newUserData = {
+            displayName: user?.displayName || '',
+            email: user?.email || '',
+            phone: '',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+          
+          await setDoc(userRef, newUserData);
+          setUserData(newUserData);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+    
+    fetchUserData();
+  }, [currentUser, user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,6 +90,11 @@ const ProfileSection = ({ user }) => {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(profileData.email)) {
       newErrors.email = 'Email is invalid';
+    }
+    
+    // Phone validation (optional field)
+    if (profileData.phone && !/^\d{10}$/.test(profileData.phone.replace(/\D/g, ''))) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
     }
     
     setErrors(newErrors);
@@ -83,7 +133,7 @@ const ProfileSection = ({ user }) => {
     setSuccessMessage('');
     
     try {
-      // Update display name
+      // Update Firebase Auth profile
       if (profileData.displayName !== user.displayName) {
         await updateProfile(auth.currentUser, {
           displayName: profileData.displayName
@@ -94,6 +144,15 @@ const ProfileSection = ({ user }) => {
       if (profileData.email !== user.email) {
         await updateEmail(auth.currentUser, profileData.email);
       }
+      
+      // Update Firestore user document
+      const userRef = doc(db, 'users', currentUser.uid);
+      await setDoc(userRef, {
+        displayName: profileData.displayName,
+        email: profileData.email,
+        phone: profileData.phone || '',
+        updatedAt: serverTimestamp()
+      }, { merge: true });
       
       setSuccessMessage('Profile updated successfully!');
       setIsEditing(false);
@@ -135,10 +194,15 @@ const ProfileSection = ({ user }) => {
       // Update password
       await updatePassword(auth.currentUser, profileData.newPassword);
       
+      // Update Firestore to record password change (don't store the password!)
+      const userRef = doc(db, 'users', currentUser.uid);
+      await setDoc(userRef, {
+        passwordLastChanged: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      
       setSuccessMessage('Password updated successfully!');
       setShowPasswordUpdate(false);
-      
-      // Clear password fields
       setProfileData({
         ...profileData,
         currentPassword: '',
@@ -166,37 +230,31 @@ const ProfileSection = ({ user }) => {
 
   const cancelEdit = () => {
     setIsEditing(false);
+    setErrors({});
+    // Reset form data to current values
     setProfileData({
       ...profileData,
       displayName: user.displayName || '',
-      email: user.email || ''
+      email: user.email || '',
+      phone: userData?.phone || ''
     });
-    setErrors({});
   };
 
   const cancelPasswordUpdate = () => {
     setShowPasswordUpdate(false);
+    setErrors({});
     setProfileData({
       ...profileData,
       currentPassword: '',
       newPassword: '',
       confirmPassword: ''
     });
-    setErrors({});
   };
 
   return (
     <div className="dashboard-section profile-section">
       <div className="section-header">
-        <h2>Profile Information</h2>
-        {!isEditing && !showPasswordUpdate && (
-          <button 
-            className="edit-button"
-            onClick={() => setIsEditing(true)}
-          >
-            <FontAwesomeIcon icon={faEdit} /> Edit Profile
-          </button>
-        )}
+        <h2>My Profile</h2>
       </div>
       
       {successMessage && (
@@ -250,6 +308,25 @@ const ProfileSection = ({ user }) => {
               )}
             </div>
             
+            <div className="form-group">
+              <label>Phone</label>
+              {isEditing ? (
+                <>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={profileData.phone}
+                    onChange={handleChange}
+                    placeholder="(123) 456-7890"
+                    disabled={isLoading}
+                  />
+                  {errors.phone && <div className="input-error">{errors.phone}</div>}
+                </>
+              ) : (
+                <div className="profile-info">{userData?.phone || 'Not set'}</div>
+              )}
+            </div>
+            
             {isEditing && (
               <div className="button-group">
                 <button 
@@ -257,7 +334,15 @@ const ProfileSection = ({ user }) => {
                   className="save-button"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Saving...' : 'Save Changes'}
+                  {isLoading ? (
+                    <>
+                      <FontAwesomeIcon icon={faSpinner} spin /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <FontAwesomeIcon icon={faSave} /> Save Changes
+                    </>
+                  )}
                 </button>
                 <button 
                   type="button" 
@@ -265,7 +350,7 @@ const ProfileSection = ({ user }) => {
                   onClick={cancelEdit}
                   disabled={isLoading}
                 >
-                  Cancel
+                  <FontAwesomeIcon icon={faTimes} /> Cancel
                 </button>
               </div>
             )}
@@ -288,7 +373,11 @@ const ProfileSection = ({ user }) => {
             <div className="info-item">
               <span className="info-label">Account Created:</span>
               <span className="info-value">
-                {user.metadata?.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString() : 'Unknown'}
+                {userData?.createdAt ? 
+                  (userData.createdAt.toDate ? 
+                    new Date(userData.createdAt.toDate()).toLocaleDateString() : 
+                    new Date(userData.createdAt).toLocaleDateString()) : 
+                  user.metadata?.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString() : 'Unknown'}
               </span>
             </div>
             <div className="info-item">
@@ -297,6 +386,16 @@ const ProfileSection = ({ user }) => {
                 {user.metadata?.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleDateString() : 'Unknown'}
               </span>
             </div>
+            {userData?.passwordLastChanged && (
+              <div className="info-item">
+                <span className="info-label">Password Last Changed:</span>
+                <span className="info-value">
+                  {userData.passwordLastChanged.toDate ? 
+                    new Date(userData.passwordLastChanged.toDate()).toLocaleDateString() : 
+                    new Date(userData.passwordLastChanged).toLocaleDateString()}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -345,7 +444,13 @@ const ProfileSection = ({ user }) => {
                 className="save-button"
                 disabled={isLoading}
               >
-                {isLoading ? 'Updating...' : 'Update Password'}
+                {isLoading ? (
+                  <>
+                    <FontAwesomeIcon icon={faSpinner} spin /> Updating...
+                  </>
+                ) : (
+                  'Update Password'
+                )}
               </button>
               <button 
                 type="button" 

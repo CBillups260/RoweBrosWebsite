@@ -44,28 +44,14 @@ const calculateTotalAmount = (cart) => {
 };
 
 // Create a payment intent and return client secret
-const createPaymentIntent = async (cart, customerInfo, deliveryInfo) => {
+const createPaymentIntent = async (amount, customerInfo, deliveryInfo, cart) => {
   try {
-    if (!cart || !cart.items) {
-      throw new Error('Missing cart information');
-    }
-
-    // Calculate total amount in cents
-    const amount = calculateTotalAmount(cart);
-    
-    if (amount <= 0) {
-      throw new Error('Invalid cart total');
-    }
-    
-    console.log('Creating payment intent with amount:', amount);
-
-    // Create metadata with cart items
     const metadata = {
       cartItems: JSON.stringify(cart.items.map(item => ({
         id: item.id,
         name: item.name,
-        quantity: item.quantity,
-        price: typeof item.price === 'number' ? item.price : extractPriceNumeric(item.price)
+        price: item.price,
+        quantity: item.quantity
       }))),
       subtotal: cart.total,
       deliveryFee: 50,
@@ -74,7 +60,7 @@ const createPaymentIntent = async (cart, customerInfo, deliveryInfo) => {
     };
 
     // Call our serverless function to create a payment intent
-    const response = await fetch('/api/create-payment-intent', {
+    const response = await fetch('/.netlify/functions/create-payment-intent', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -89,9 +75,16 @@ const createPaymentIntent = async (cart, customerInfo, deliveryInfo) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Payment intent creation failed:', errorData);
-      throw new Error(errorData.error || 'Failed to create payment intent');
+      const errorText = await response.text();
+      console.error('Payment intent creation failed:', errorText);
+      try {
+        // Try to parse as JSON if possible
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.error || 'Failed to create payment intent');
+      } catch (parseError) {
+        // If not JSON, throw with the text
+        throw new Error(`Failed to create payment intent: ${errorText.substring(0, 100)}...`);
+      }
     }
 
     const data = await response.json();

@@ -10,7 +10,6 @@ import {
   faG
 } from '@fortawesome/free-solid-svg-icons';
 import { 
-  signIn, 
   getCurrentUser, 
   resetPassword 
 } from '../../services/authService';
@@ -22,6 +21,7 @@ import {
 import { auth } from '../../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -34,6 +34,7 @@ const AdminLogin = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
+  const { login, googleSignIn } = useAuth();
   
   // Check if user is already logged in and handle redirect result
   useEffect(() => {
@@ -78,34 +79,27 @@ const AdminLogin = () => {
       
       console.log('Google sign-in result:', result.user.email);
       
-      // Check if the Google user is a staff member in Firestore
-      const staffRef = collection(db, 'staff');
-      const q = query(staffRef, where("email", "==", result.user.email));
-      const snapshot = await getDocs(q);
-      
-      if (snapshot.empty) {
-        // Not a staff member
-        console.error('Not a staff member:', result.user.email);
-        setError('This Google account does not have admin access. Please use an authorized account or log in with email/password.');
-        // Sign out since this is not a staff account
+      // Use the googleSignIn function from AuthContext
+      try {
+        const staffUser = await googleSignIn(result.user);
+        
+        if (!staffUser) {
+          console.error('Not a staff member:', result.user.email);
+          setError('This Google account does not have admin access. Please use an authorized account or log in with email/password.');
+          // Sign out since this is not a staff account
+          await auth.signOut();
+          return;
+        }
+        
+        console.log('Successfully authenticated as staff:', result.user.email);
+        
+        // Navigate to admin dashboard
+        navigate('/admin', { replace: true });
+      } catch (error) {
+        console.error('Error in Google sign-in:', error);
+        setError(error.message || 'Authentication failed. Please try again.');
         await auth.signOut();
-        return;
       }
-      
-      const staffData = snapshot.docs[0].data();
-      
-      // Check if staff is active
-      if (staffData.status !== 'Active') {
-        console.error('Staff account inactive:', result.user.email);
-        setError('Your account is inactive. Please contact an administrator.');
-        // Sign out since account is inactive
-        await auth.signOut();
-        return;
-      }
-      
-      console.log('Successfully authenticated as staff:', result.user.email);
-      // Successfully authenticated as staff
-      // Redirect will happen automatically in the checkAuth effect
     } catch (error) {
       console.error('Google sign-in error:', error);
       setError(error.message || 'Failed to sign in with Google. Please try again.');
@@ -132,7 +126,12 @@ const AdminLogin = () => {
       setLoading(true);
       setError(null);
       
-      const user = await signIn(email, password);
+      const user = await login(email, password);
+      
+      // Debug user object
+      console.log('User after login:', user);
+      console.log('isStaff property:', user.isStaff);
+      console.log('User permissions:', user.permissions);
       
       // Check if user is staff
       if (!user.isStaff) {
@@ -141,9 +140,8 @@ const AdminLogin = () => {
         return;
       }
       
-      // Redirect to the intended page or dashboard
-      const from = location.state?.from?.pathname || '/admin';
-      navigate(from, { replace: true });
+      // Always go to the admin dashboard after login
+      navigate('/admin', { replace: true });
     } catch (error) {
       console.error('Login error:', error);
       
