@@ -47,26 +47,34 @@ header.scrolled {
 }
 
 .motto {
-  font-size: 1rem;
+  font-size: 24px;
   color: rgba(255, 255, 255, 0.9);
   margin-left: 1rem;
-  font-style: italic;
+  font-style: normal;
   font-weight: 500;
+  font-family: 'Luckiest Guy', cursive;
+  letter-spacing: 1px;
+  line-height: 1.2;
 }
 
 /* Mobile Motto */
 .mobile-motto {
   display: none;
   color: white;
-  font-size: 0.95rem;
-  font-style: italic;
+  font-size: 1.2rem;
+  padding-top: 10px;
+  width: 50%;
+  text-align: center;
+  font-style: normal;
   font-weight: 500;
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  text-align: center;
   white-space: nowrap;
+  font-family: 'Luckiest Guy', cursive;
+  letter-spacing: 1px;
+  line-height: 1.2;
 }
 
 /* Make sure the logo looks good when scrolled */
@@ -649,7 +657,7 @@ header.scrolled .cart-count {
   }
   
   .logo {
-    height: 45px;
+    height: 65px;
   }
   
   .mobile-motto {
@@ -831,55 +839,58 @@ header.scrolled .user-button:hover svg {
 
 /* Mobile Cart Icon Styles */
 .mobile-cart-icon {
-  display: none;
-  position: absolute;
-  right: 4.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1000;
-  cursor: pointer;
-  padding: 10px;
+  display: none; /* Hidden by default */
 }
 
-.mobile-cart-icon .cart-icon {
-  background-color: #1976D2;
-  padding: 0.6rem;
-  border-radius: 50%;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
-}
-
-.mobile-cart-icon .cart-icon:hover {
-  transform: scale(1.1);
-}
-
-.mobile-cart-icon .cart-count {
-  position: absolute;
-  top: -2px;
-  right: 0;
-  background-color: #FFC107;
-  color: #333;
-  font-size: 0.8rem;
-  font-weight: 700;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  border: 2px solid #1976D2;
+@media (max-width: 992px) {
+  .mobile-cart-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0; /* Remove margin to align perfectly with menu button */
+  }
+  
+  .mobile-cart-icon .cart-icon {
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    position: relative;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .mobile-cart-icon .cart-icon:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+  }
+  
+  .mobile-cart-icon .cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #FFC107;
+    color: #333;
+    font-size: 0.7rem;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #1E88E5;
+  }
 }
 
 /* Keep the cart icon white even when header is scrolled */
 header.scrolled .mobile-cart-icon .cart-icon {
   color: white;
-  background-color: #1976D2;
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 header.scrolled .mobile-cart-icon .cart-count {
@@ -1367,10 +1378,47 @@ header.scrolled .login-button:hover {
   }
   
   /* Move the cart icon to a better position in the mobile header */
-  .cart-icon-container {
+  .mobile-cart-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0; /* Remove margin to align perfectly with menu button */
+  }
+  
+  .mobile-cart-icon .cart-icon {
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    position: relative;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .mobile-cart-icon .cart-icon:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+  }
+  
+  .mobile-cart-icon .cart-count {
     position: absolute;
-    top: 1.35rem; /* Adjust as needed to vertically align with the logo */
-    right: 4.5rem; /* Space it to the left of the mobile menu button */
+    top: -5px;
+    right: -5px;
+    background-color: #FFC107;
+    color: #333;
+    font-size: 0.7rem;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #1E88E5;
   }
   
   /* Make sure the cart drawer appears above everything else */
@@ -1535,11 +1583,54 @@ header.scrolled .login-button:hover {
   }
   
   .logo {
-    height: 50px;
+    height: 65px;
   }
   
   nav ul {
     width: 280px;
     padding: 1.5rem;
+  }
+}
+
+/* Mobile Actions Container */
+.mobile-actions {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 992px) {
+  .mobile-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .mobile-menu-button,
+  .mobile-cart-icon .cart-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .mobile-menu-button:hover,
+  .mobile-cart-icon .cart-icon:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+  }
+  
+  /* Hide the standalone mobile cart icon since it's now in the mobile-actions container */
+  .mobile-cart-icon {
+    display: flex;
+    align-items: center;
   }
 }

@@ -5,7 +5,8 @@ import {
   getCurrentUser,
   hasPermission,
   isAdmin,
-  isManagerOrAdmin
+  isManagerOrAdmin,
+  handleGoogleSignIn
 } from '../services/authService';
 
 // Create the Authentication Context
@@ -26,6 +27,15 @@ export const AuthProvider = ({ children }) => {
     const user = await signIn(email, password);
     setCurrentUser(user);
     return user;
+  };
+
+  // Function to handle Google sign-in
+  const googleSignIn = async (user) => {
+    const staffUser = await handleGoogleSignIn(user);
+    if (staffUser) {
+      setCurrentUser(staffUser);
+    }
+    return staffUser;
   };
 
   // Function to log out
@@ -71,6 +81,7 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     isAuthenticated: !!currentUser,
     login,
+    googleSignIn,
     logout,
     loading,
     hasPermission: checkPermission,

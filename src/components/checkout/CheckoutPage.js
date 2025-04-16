@@ -464,10 +464,14 @@ const CheckoutPage = () => {
       const deliveryForStripe = buildDeliveryInfoForStripe(deliveryInfo);
       console.log('[CheckoutPage] Delivery info being sent to Stripe:', deliveryForStripe);
       
+      // Calculate total amount in cents
+      const amount = Math.round((cart.total + 50 + (cart.total * 0.07)) * 100);
+      
       const { clientSecret, paymentIntentId } = await createPaymentIntent(
-        cart,
+        amount,
         customerInfo,
-        deliveryForStripe
+        deliveryForStripe,
+        cart
       );
       
       console.log('Payment intent created:', { paymentIntentId, clientSecret });
@@ -482,7 +486,7 @@ const CheckoutPage = () => {
         // STEP 3: Save the order to Firebase
         console.log('Saving order to database...');
         try {
-          const response = await fetch('/api/save-order', {
+          const response = await fetch('/.netlify/functions/save-order', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -505,7 +509,7 @@ const CheckoutPage = () => {
           console.log('Order saved successfully:', orderData);
           
           // Clear the cart
-          cart.clearCart();
+          clearCart();
           
           // Show success message and redirect to confirmation page
           setPaymentStatus('success');

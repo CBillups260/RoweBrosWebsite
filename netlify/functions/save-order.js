@@ -107,7 +107,7 @@ exports.handler = async (event) => {
         amount: paymentIntent.amount / 100, // Convert cents to dollars
         status: paymentIntent.status,
         method: 'card',
-        last4: paymentIntent.charges.data[0]?.payment_method_details?.card?.last4 || 'N/A'
+        last4: paymentIntent.charges?.data?.[0]?.payment_method_details?.card?.last4 || 'N/A'
       },
       pricing: {
         subtotal,
@@ -147,7 +147,8 @@ exports.handler = async (event) => {
       statusCode: 500,
       body: JSON.stringify({ 
         error: error.message,
-        details: error.stack
+        details: error.stack,
+        message: 'Failed to save order to database'
       }),
     };
   }
