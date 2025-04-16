@@ -32,6 +32,7 @@ import CartPage from './components/cart/CartPage';
 import LoginPage from './components/auth/LoginPage';
 import ForgotPasswordPage from './components/auth/ForgotPasswordPage';
 import CheckoutPage from './components/checkout/CheckoutPage';
+import ConfirmationPage from './components/checkout/ConfirmationPage';
 import Dashboard from './components/dashboard/Dashboard';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AdminLogin from './components/admin/AdminLogin';
@@ -85,6 +86,7 @@ function App() {
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                       <Route path="/checkout" element={<CheckoutPage />} />
+                      <Route path="/confirmation" element={<ConfirmationPage />} />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/about" element={<AboutPage />} />
                       <Route path="/privacy" element={<PrivacyPolicy />} />

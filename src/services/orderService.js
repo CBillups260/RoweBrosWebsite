@@ -23,13 +23,36 @@ export const getOrders = async () => {
   const q = query(ordersRef, orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(q);
   
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    // Convert Firestore timestamps to JS Date objects
-    createdAt: doc.data().createdAt?.toDate(),
-    updatedAt: doc.data().updatedAt?.toDate()
-  }));
+  return snapshot.docs.map(doc => {
+    // Safely handle createdAt and updatedAt fields
+    let createdAt = null;
+    let updatedAt = null;
+    
+    try {
+      createdAt = doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : 
+                 (doc.data().createdAt instanceof Date ? doc.data().createdAt : 
+                 (typeof doc.data().createdAt === 'string' ? new Date(doc.data().createdAt) : new Date()));
+    } catch (e) {
+      console.warn('Error converting createdAt for order', doc.id, e);
+      createdAt = new Date();
+    }
+    
+    try {
+      updatedAt = doc.data().updatedAt?.toDate ? doc.data().updatedAt.toDate() : 
+                 (doc.data().updatedAt instanceof Date ? doc.data().updatedAt : 
+                 (typeof doc.data().updatedAt === 'string' ? new Date(doc.data().updatedAt) : createdAt));
+    } catch (e) {
+      console.warn('Error converting updatedAt for order', doc.id, e);
+      updatedAt = createdAt;
+    }
+    
+    return {
+      id: doc.id,
+      ...doc.data(),
+      createdAt: createdAt,
+      updatedAt: updatedAt
+    };
+  });
 };
 
 // Get orders with pagination
@@ -54,13 +77,39 @@ export const getOrdersPaginated = async (startAfter = null, pageSize = 10) => {
   
   const snapshot = await getDocs(q);
   
-  return {
-    orders: snapshot.docs.map(doc => ({
+  const orders = snapshot.docs.map(doc => {
+    // Safely handle createdAt and updatedAt fields
+    let createdAt = null;
+    let updatedAt = null;
+    
+    try {
+      createdAt = doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : 
+                 (doc.data().createdAt instanceof Date ? doc.data().createdAt : 
+                 (typeof doc.data().createdAt === 'string' ? new Date(doc.data().createdAt) : new Date()));
+    } catch (e) {
+      console.warn('Error converting createdAt for order', doc.id, e);
+      createdAt = new Date();
+    }
+    
+    try {
+      updatedAt = doc.data().updatedAt?.toDate ? doc.data().updatedAt.toDate() : 
+                 (doc.data().updatedAt instanceof Date ? doc.data().updatedAt : 
+                 (typeof doc.data().updatedAt === 'string' ? new Date(doc.data().updatedAt) : createdAt));
+    } catch (e) {
+      console.warn('Error converting updatedAt for order', doc.id, e);
+      updatedAt = createdAt;
+    }
+    
+    return {
       id: doc.id,
       ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate()
-    })),
+      createdAt: createdAt,
+      updatedAt: updatedAt
+    };
+  });
+  
+  return {
+    orders,
     lastVisible: snapshot.docs[snapshot.docs.length - 1]
   };
 };
@@ -72,11 +121,34 @@ export const getOrderById = async (id) => {
   
   if (orderDoc.exists()) {
     const data = orderDoc.data();
+    
+    // Safely handle createdAt and updatedAt fields
+    let createdAt = null;
+    let updatedAt = null;
+    
+    try {
+      createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : 
+                 (data.createdAt instanceof Date ? data.createdAt : 
+                 (typeof data.createdAt === 'string' ? new Date(data.createdAt) : new Date()));
+    } catch (e) {
+      console.warn('Error converting createdAt for order', id, e);
+      createdAt = new Date();
+    }
+    
+    try {
+      updatedAt = data.updatedAt?.toDate ? data.updatedAt.toDate() : 
+                 (data.updatedAt instanceof Date ? data.updatedAt : 
+                 (typeof data.updatedAt === 'string' ? new Date(data.updatedAt) : createdAt));
+    } catch (e) {
+      console.warn('Error converting updatedAt for order', id, e);
+      updatedAt = createdAt;
+    }
+    
     return {
       id: orderDoc.id,
       ...data,
-      createdAt: data.createdAt?.toDate(),
-      updatedAt: data.updatedAt?.toDate()
+      createdAt: createdAt,
+      updatedAt: updatedAt
     };
   } else {
     return null;
