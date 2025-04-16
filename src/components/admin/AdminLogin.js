@@ -16,7 +16,7 @@ import {
 } from '../../services/authService';
 import { 
   GoogleAuthProvider,
-  signInWithRedirect,
+  signInWithPopup,
   getRedirectResult
 } from 'firebase/auth';
 import { auth } from '../../firebase';
@@ -69,6 +69,15 @@ const AdminLogin = () => {
     try {
       setLoading(true);
       
+      // If there's no result, return early
+      if (!result || !result.user) {
+        console.log('No Google sign-in result found');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Google sign-in result:', result.user.email);
+      
       // Check if the Google user is a staff member in Firestore
       const staffRef = collection(db, 'staff');
       const q = query(staffRef, where("email", "==", result.user.email));
@@ -76,6 +85,7 @@ const AdminLogin = () => {
       
       if (snapshot.empty) {
         // Not a staff member
+        console.error('Not a staff member:', result.user.email);
         setError('This Google account does not have admin access. Please use an authorized account or log in with email/password.');
         // Sign out since this is not a staff account
         await auth.signOut();
@@ -86,12 +96,14 @@ const AdminLogin = () => {
       
       // Check if staff is active
       if (staffData.status !== 'Active') {
+        console.error('Staff account inactive:', result.user.email);
         setError('Your account is inactive. Please contact an administrator.');
         // Sign out since account is inactive
         await auth.signOut();
         return;
       }
       
+      console.log('Successfully authenticated as staff:', result.user.email);
       // Successfully authenticated as staff
       // Redirect will happen automatically in the checkAuth effect
     } catch (error) {
@@ -154,14 +166,18 @@ const AdminLogin = () => {
       setLoading(true);
       setError(null);
       
+      console.log('Starting Google sign-in process');
       const provider = new GoogleAuthProvider();
       provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
       provider.addScope('https://www.googleapis.com/auth/userinfo.email');
       
-      // Use redirect method instead of popup
-      await signInWithRedirect(auth, provider);
+      // Use popup method instead of redirect for better debugging
+      const result = await signInWithPopup(auth, provider);
+      console.log('Google sign-in popup completed');
       
-      // The redirect will happen now, and the result will be handled in useEffect
+      // Handle the result directly instead of waiting for redirect
+      await handleGoogleSignInResult(result);
+      
     } catch (error) {
       console.error('Google sign-in error:', error);
       setError(error.message || 'Failed to start Google sign-in. Please try again.');

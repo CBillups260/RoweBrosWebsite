@@ -225,56 +225,61 @@ export const getAvailablePermissions = async () => {
 export const ensureDefaultRolesExist = async () => {
   try {
     console.log('Checking for existing roles...');
-    const existingRoles = await getRoles();
+    // First try to get roles without writing anything
+    const rolesRef = collection(db, rolesCollection);
+    const snapshot = await getDocs(rolesRef);
     
-    if (existingRoles.length === 0) {
-      console.log('No roles found. Creating default roles...');
-      
-      const permissions = await getAvailablePermissions();
-      const allPermissionIds = permissions.map(p => p.id);
-      
-      const defaultRoles = [
-        {
-          name: 'Admin',
-          description: 'Full access to all system features',
-          permissions: allPermissionIds,
-          isSystem: true
-        },
-        {
-          name: 'Manager',
-          description: 'Access to most features except staff and role management',
-          permissions: allPermissionIds.filter(p => 
-            p !== 'manage_staff' && 
-            p !== 'manage_roles'
-          ),
-          isSystem: true
-        },
-        {
-          name: 'Staff',
-          description: 'Limited access to basic features',
-          permissions: [
-            'view_products',
-            'view_categories',
-            'view_orders',
-            'manage_orders'
-          ],
-          isSystem: true
-        }
-      ];
-      
-      // Add all default roles
-      for (const role of defaultRoles) {
-        await addRole(role);
-        console.log(`Created role: ${role.name}`);
-      }
-      
-      return true;
-    } else {
-      console.log(`Found ${existingRoles.length} existing roles.`);
-      return false;
+    if (!snapshot.empty) {
+      console.log(`Found ${snapshot.docs.length} existing roles.`);
+      return false; // Roles already exist, no need to create defaults
     }
+    
+    // Only try to create roles if none exist
+    console.log('No roles found. Creating default roles...');
+    
+    const permissions = await getAvailablePermissions();
+    const allPermissionIds = permissions.map(p => p.id);
+    
+    const defaultRoles = [
+      {
+        name: 'Admin',
+        description: 'Full access to all system features',
+        permissions: allPermissionIds,
+        isSystem: true
+      },
+      {
+        name: 'Manager',
+        description: 'Access to most features except staff and role management',
+        permissions: allPermissionIds.filter(p => 
+          p !== 'manage_staff' && 
+          p !== 'manage_roles'
+        ),
+        isSystem: true
+      },
+      {
+        name: 'Staff',
+        description: 'Limited access to basic features',
+        permissions: [
+          'view_products',
+          'view_categories',
+          'view_orders',
+          'manage_orders'
+        ],
+        isSystem: true
+      }
+    ];
+    
+    // Add all default roles
+    for (const role of defaultRoles) {
+      await addRole(role);
+      console.log(`Created role: ${role.name}`);
+    }
+    
+    return true;
   } catch (error) {
+    // If we get a permission error, log it but don't throw
     console.error('Error initializing roles:', error);
+    // Return false to indicate we didn't create new roles, but don't break the app
     return false;
   }
 };

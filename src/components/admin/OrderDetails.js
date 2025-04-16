@@ -17,6 +17,9 @@ import {
 const OrderDetails = ({ order, onClose, onStatusUpdate }) => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   
+  // Debug: Log the order structure
+  console.log('Order details:', JSON.stringify(order, null, 2));
+  
   // Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -114,42 +117,78 @@ const OrderDetails = ({ order, onClose, onStatusUpdate }) => {
                 <FontAwesomeIcon icon={faUser} />
                 <div>
                   <span className="detail-label">Name</span>
-                  <span className="detail-value">{order.customer?.name || 'Unknown'}</span>
+                  <span className="detail-value">
+                    {order.customer?.name || 
+                     order.customerInfo?.name ||
+                     (order.customerInfo?.firstName && order.customerInfo?.lastName ? 
+                       `${order.customerInfo.firstName} ${order.customerInfo.lastName}` : 
+                       (order.customer?.firstName && order.customer?.lastName ? 
+                         `${order.customer.firstName} ${order.customer.lastName}` : 
+                         'Unknown'))}
+                  </span>
                 </div>
               </div>
               <div className="detail-item">
                 <FontAwesomeIcon icon={faEnvelope} />
                 <div>
                   <span className="detail-label">Email</span>
-                  <span className="detail-value">{order.customer?.email || 'Not provided'}</span>
+                  <span className="detail-value">{order.customer?.email || order.customerInfo?.email || 'Not provided'}</span>
                 </div>
               </div>
               <div className="detail-item">
                 <FontAwesomeIcon icon={faPhone} />
                 <div>
                   <span className="detail-label">Phone</span>
-                  <span className="detail-value">{order.customer?.phone || 'Not provided'}</span>
+                  <span className="detail-value">{order.customer?.phone || order.customerInfo?.phone || 'Not provided'}</span>
                 </div>
               </div>
             </div>
             
             <div className="detail-card">
               <h3>Shipping Address</h3>
-              {order.shippingAddress ? (
-                <div className="address-details">
-                  <div className="detail-item">
-                    <FontAwesomeIcon icon={faMapMarkerAlt} />
-                    <div>
-                      <p>{order.shippingAddress.line1}</p>
-                      {order.shippingAddress.line2 && <p>{order.shippingAddress.line2}</p>}
-                      <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}</p>
-                      <p>{order.shippingAddress.country}</p>
-                    </div>
+              {(order.delivery || order.deliveryInfo) ? (
+                <div className="detail-item">
+                  <FontAwesomeIcon icon={faMapMarkerAlt} />
+                  <div>
+                    <span className="detail-value address-line">
+                      {typeof order.delivery?.address === 'object' 
+                        ? order.delivery.address.line1 
+                        : (order.delivery?.address || order.deliveryInfo?.address || 'No address provided')}
+                    </span>
+                    {(order.delivery?.city && order.delivery?.state) || (order.deliveryInfo?.city && order.deliveryInfo?.state) ? (
+                      <span className="detail-value address-line">
+                        {order.delivery?.city || order.deliveryInfo?.city}, 
+                        {order.delivery?.state || order.deliveryInfo?.state} 
+                        {order.delivery?.zipCode || order.deliveryInfo?.zipCode}
+                      </span>
+                    ) : null}
+                    {(order.delivery?.date || order.deliveryInfo?.deliveryDate) && (
+                      <span className="detail-value address-line">
+                        <strong>Delivery Date:</strong> {formatDate(order.delivery?.date || order.deliveryInfo?.deliveryDate)}
+                      </span>
+                    )}
+                    {(order.delivery?.time || order.deliveryInfo?.deliveryTime) && (
+                      <span className="detail-value address-line">
+                        <strong>Delivery Time:</strong> {order.delivery?.time || order.deliveryInfo?.deliveryTime}
+                      </span>
+                    )}
+                    {(order.delivery?.instructions || order.deliveryInfo?.specialInstructions) && (
+                      <span className="detail-value address-line">
+                        <strong>Instructions:</strong> {order.delivery?.instructions || order.deliveryInfo?.specialInstructions}
+                      </span>
+                    )}
                   </div>
                 </div>
               ) : (
                 <p className="no-data">No shipping address provided</p>
               )}
+            </div>
+            
+            <div className="detail-card">
+              <h3>Debug Information</h3>
+              <div style={{ overflowX: 'auto', maxHeight: '200px', padding: '10px', background: '#f5f5f5', borderRadius: '4px' }}>
+                <pre>{JSON.stringify(order, null, 2)}</pre>
+              </div>
             </div>
           </div>
           
@@ -205,27 +244,27 @@ const OrderDetails = ({ order, onClose, onStatusUpdate }) => {
               <div className="order-summary">
                 <div className="summary-row">
                   <span>Subtotal</span>
-                  <span>{formatCurrency(order.subtotal)}</span>
+                  <span>{formatCurrency(order.subtotal || (order.pricing?.subtotal) || 0)}</span>
                 </div>
                 <div className="summary-row">
                   <span>Shipping</span>
-                  <span>{formatCurrency(order.shipping)}</span>
+                  <span>{formatCurrency(order.shipping || order.deliveryFee || (order.pricing?.deliveryFee) || 0)}</span>
                 </div>
-                {order.discount > 0 && (
+                {(order.discount > 0 || order.pricing?.discount > 0) && (
                   <div className="summary-row discount">
                     <span>Discount</span>
-                    <span>-{formatCurrency(order.discount)}</span>
+                    <span>-{formatCurrency(order.discount || order.pricing?.discount || 0)}</span>
                   </div>
                 )}
-                {order.tax > 0 && (
+                {(order.tax > 0 || order.pricing?.tax > 0) && (
                   <div className="summary-row">
                     <span>Tax</span>
-                    <span>{formatCurrency(order.tax)}</span>
+                    <span>{formatCurrency(order.tax || order.pricing?.tax || 0)}</span>
                   </div>
                 )}
                 <div className="summary-row total">
                   <span>Total</span>
-                  <span>{formatCurrency(order.total)}</span>
+                  <span>{formatCurrency(order.total || (order.pricing?.total) || 0)}</span>
                 </div>
               </div>
             </div>

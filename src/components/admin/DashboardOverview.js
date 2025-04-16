@@ -54,12 +54,25 @@ const DashboardOverview = () => {
       // Fetch categories
       const categories = await getCategories();
       
-      // Fetch sales summary
-      const salesSummary = await getSalesSummary();
+      let salesSummary = { totalRevenue: 0, totalOrders: 0 };
+      let orders = [];
       
-      // Fetch recent orders
-      const orders = await getRecentOrders(5);
-      setRecentOrders(orders);
+      try {
+        // Fetch sales summary
+        salesSummary = await getSalesSummary();
+      } catch (salesError) {
+        console.warn('Error fetching sales summary:', salesError);
+        // Continue with default values
+      }
+      
+      try {
+        // Fetch recent orders
+        orders = await getRecentOrders(5);
+        setRecentOrders(orders);
+      } catch (ordersError) {
+        console.warn('Error fetching recent orders:', ordersError);
+        // Continue with empty orders array
+      }
       
       // Calculate low stock items (products with quantity < 5)
       const lowStockCount = products.filter(product => 
@@ -213,16 +226,23 @@ const DashboardOverview = () => {
                   {recentOrders.map(order => (
                     <tr key={order.id}>
                       <td>{order.id.substring(0, 8)}...</td>
-                      <td>{order.customerName || 'Guest'}</td>
+                      <td>
+                        {order.customerName || 
+                         (order.customer?.name) || 
+                         (order.customerInfo?.name) || 
+                         (order.customerInfo?.firstName && order.customerInfo?.lastName ? 
+                           `${order.customerInfo.firstName} ${order.customerInfo.lastName}` : 
+                           'Guest')}
+                      </td>
                       <td>{formatDate(order.createdAt)}</td>
-                      <td>{formatCurrency(order.totalAmount || 0)}</td>
+                      <td>{formatCurrency(order.totalAmount || order.total || 0)}</td>
                       <td>
                         <span className={`order-status ${getStatusClass(order.status)}`}>
                           {order.status || 'Pending'}
                         </span>
                       </td>
                       <td>
-                        <Link to={`/admin/orders/${order.id}`} className="view-link">
+                        <Link to={`#orders`} onClick={() => window.location.hash = 'orders'} className="view-link">
                           <FontAwesomeIcon icon={faEye} /> View
                         </Link>
                       </td>

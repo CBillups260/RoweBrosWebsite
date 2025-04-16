@@ -31,6 +31,13 @@ const AdminDashboard = () => {
   useEffect(() => {
     const initRoles = async () => {
       try {
+        // Skip role initialization in development environment to avoid permission errors
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Skipping role initialization in development environment');
+          setRolesInitialized(true);
+          return;
+        }
+        
         const result = await ensureDefaultRolesExist();
         setRolesInitialized(true);
         console.log('Roles initialization:', result ? 'Created default roles' : 'Roles already exist');

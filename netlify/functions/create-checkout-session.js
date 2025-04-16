@@ -16,30 +16,38 @@ exports.handler = async (event) => {
       lineItemsCount: lineItems ? lineItems.length : 0,
       customerInfo: customerInfo,
       deliveryInfo: deliveryInfo,
-      hasDeliveryAddress: deliveryInfo && deliveryInfo.address,
     });
 
-    // Safely handle address fields
-    const address = deliveryInfo && deliveryInfo.address ? {
-      line1: deliveryInfo.address.line1 || '',
-      line2: deliveryInfo.address.line2 || '',
-      city: deliveryInfo.address.city || '',
-      state: deliveryInfo.address.state || '',
-      postal_code: deliveryInfo.address.postal_code || '',
-      country: deliveryInfo.address.country || 'US'
-    } : {};
+    // SIMPLIFIED APPROACH: Create a safe address object regardless of input format
+    const address = {
+      line1: deliveryInfo?.address?.line1 || deliveryInfo?.address || '',
+      line2: deliveryInfo?.address?.line2 || '',
+      city: deliveryInfo?.address?.city || deliveryInfo?.city || '',
+      state: deliveryInfo?.address?.state || deliveryInfo?.state || '',
+      postal_code: deliveryInfo?.address?.postal_code || deliveryInfo?.zipCode || '',
+      country: deliveryInfo?.address?.country || 'US'
+    };
+
+    console.log('Using address:', address);
 
     // Create a Stripe customer if needed
     let customer;
-    if (customerInfo.email) {
+    if (customerInfo?.email) {
+      // Create a full name from firstName and lastName
+      const fullName = customerInfo.fullName || 
+                     `${customerInfo.firstName || ''} ${customerInfo.lastName || ''}`.trim() || 
+                     'Guest Customer';
+      
+      console.log('Creating customer with name:', fullName);
+      
       customer = await stripe.customers.create({
         email: customerInfo.email,
-        name: customerInfo.fullName,
-        phone: customerInfo.phone,
+        name: fullName,
+        phone: customerInfo.phone || '',
         address,
         metadata: {
           deliveryAddress: JSON.stringify(address),
-          deliveryInstructions: deliveryInfo.instructions || '',
+          deliveryInstructions: deliveryInfo?.instructions || deliveryInfo?.deliveryInstructions || '',
         },
       });
     }
@@ -53,10 +61,11 @@ exports.handler = async (event) => {
       cancel_url: cancelUrl,
       customer: customer ? customer.id : undefined,
       metadata: {
-        customerName: customerInfo.fullName,
-        customerEmail: customerInfo.email,
+        customerName: customerInfo?.fullName || 
+                   `${customerInfo?.firstName || ''} ${customerInfo?.lastName || ''}`.trim() || '',
+        customerEmail: customerInfo?.email || '',
         deliveryAddress: JSON.stringify(address),
-        deliveryInstructions: deliveryInfo.instructions || '',
+        deliveryInstructions: deliveryInfo?.instructions || deliveryInfo?.deliveryInstructions || '',
       },
     });
 

@@ -202,14 +202,27 @@ export const getSalesSummary = async () => {
     
     // Get all orders
     const snapshot = await getDocs(ordersRef);
-    const orders = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate()
-    }));
+    const orders = snapshot.docs.map(doc => {
+      // Safely handle createdAt field that might not be a Firestore timestamp
+      let createdAt = null;
+      try {
+        createdAt = doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : 
+                   (doc.data().createdAt instanceof Date ? doc.data().createdAt : 
+                   (typeof doc.data().createdAt === 'string' ? new Date(doc.data().createdAt) : new Date()));
+      } catch (e) {
+        console.warn('Error converting createdAt for order', doc.id, e);
+        createdAt = new Date(); // Fallback to current date
+      }
+      
+      return {
+        id: doc.id,
+        ...doc.data(),
+        createdAt: createdAt
+      };
+    });
     
-    // Calculate total revenue
-    const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+    // Calculate total revenue - use total field instead of totalAmount
+    const totalRevenue = orders.reduce((sum, order) => sum + (order.total || order.totalAmount || 0), 0);
     
     // Get today's date at midnight
     const today = new Date();
@@ -228,22 +241,22 @@ export const getSalesSummary = async () => {
     // Get end of last month
     const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
     
-    // Calculate revenue for different time periods
+    // Calculate revenue for different time periods - use total field instead of totalAmount
     const todayRevenue = orders
       .filter(order => order.createdAt >= today)
-      .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+      .reduce((sum, order) => sum + (order.total || order.totalAmount || 0), 0);
     
     const yesterdayRevenue = orders
       .filter(order => order.createdAt >= yesterday && order.createdAt < today)
-      .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+      .reduce((sum, order) => sum + (order.total || order.totalAmount || 0), 0);
     
     const thisMonthRevenue = orders
       .filter(order => order.createdAt >= startOfMonth)
-      .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+      .reduce((sum, order) => sum + (order.total || order.totalAmount || 0), 0);
     
     const lastMonthRevenue = orders
       .filter(order => order.createdAt >= startOfLastMonth && order.createdAt <= endOfLastMonth)
-      .reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+      .reduce((sum, order) => sum + (order.total || order.totalAmount || 0), 0);
     
     // Calculate growth rates
     const dailyGrowth = yesterdayRevenue > 0 
@@ -283,12 +296,36 @@ export const getRecentOrders = async (limitCount = 5) => {
     
     const snapshot = await getDocs(q);
     
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate()
-    }));
+    return snapshot.docs.map(doc => {
+      // Safely handle createdAt and updatedAt fields
+      let createdAt = null;
+      let updatedAt = null;
+      
+      try {
+        createdAt = doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : 
+                   (doc.data().createdAt instanceof Date ? doc.data().createdAt : 
+                   (typeof doc.data().createdAt === 'string' ? new Date(doc.data().createdAt) : new Date()));
+      } catch (e) {
+        console.warn('Error converting createdAt for order', doc.id, e);
+        createdAt = new Date();
+      }
+      
+      try {
+        updatedAt = doc.data().updatedAt?.toDate ? doc.data().updatedAt.toDate() : 
+                   (doc.data().updatedAt instanceof Date ? doc.data().updatedAt : 
+                   (typeof doc.data().updatedAt === 'string' ? new Date(doc.data().updatedAt) : createdAt));
+      } catch (e) {
+        console.warn('Error converting updatedAt for order', doc.id, e);
+        updatedAt = createdAt;
+      }
+      
+      return {
+        id: doc.id,
+        ...doc.data(),
+        createdAt: createdAt,
+        updatedAt: updatedAt
+      };
+    });
     
   } catch (error) {
     console.error('Error fetching recent orders:', error);

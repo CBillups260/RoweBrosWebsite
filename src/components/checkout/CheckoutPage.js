@@ -19,7 +19,8 @@ import { useCart } from '../../context/CartContext';
 import { Elements } from '@stripe/react-stripe-js';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { 
-  createCheckoutSession,
+  createPaymentIntent,
+  processPayment,
   extractPriceNumeric,
   getStripe
 } from '../../services/stripeService';
@@ -158,6 +159,7 @@ const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState('');
   
   // Define service areas
   const serviceAreas = [
@@ -409,6 +411,25 @@ const CheckoutPage = () => {
     goToNextStep();
   };
   
+  const buildDeliveryInfoForStripe = (deliveryInfo) => {
+    // If address is already an object with line1, return as is
+    if (deliveryInfo && typeof deliveryInfo.address === 'object' && deliveryInfo.address !== null && deliveryInfo.address.line1 !== undefined) {
+      return deliveryInfo;
+    }
+    // If address is a string or missing, build the object for Stripe
+    return {
+      ...deliveryInfo,
+      address: {
+        line1: deliveryInfo.address || '',
+        line2: '',
+        city: deliveryInfo.city || '',
+        state: deliveryInfo.state || '',
+        postal_code: deliveryInfo.zipCode || '',
+        country: 'US',
+      },
+    };
+  };
+
   const handlePlaceOrder = async () => {
     try {
       console.log('Placing order...');
@@ -438,30 +459,81 @@ const CheckoutPage = () => {
         return;
       }
       
-      // Process payment using createCheckoutSession
-      console.log('Processing payment...');
-      const { paymentIntentId, clientSecret, orderId } = await createCheckoutSession(
+      // STEP 1: Create a payment intent
+      console.log('Creating payment intent...');
+      const deliveryForStripe = buildDeliveryInfoForStripe(deliveryInfo);
+      console.log('[CheckoutPage] Delivery info being sent to Stripe:', deliveryForStripe);
+      
+      const { clientSecret, paymentIntentId } = await createPaymentIntent(
         cart,
         customerInfo,
-        deliveryInfo,
-        auth.currentUser?.uid || null,
-        !auth.currentUser
+        deliveryForStripe
       );
       
-      console.log('Payment processed:', { paymentIntentId, clientSecret, orderId });
+      console.log('Payment intent created:', { paymentIntentId, clientSecret });
       
-      // Store order ID for confirmation
-      setOrderId(orderId);
+      // STEP 2: Process the payment with the payment method
+      console.log('Processing payment...');
+      const result = await processPayment(clientSecret, paymentMethodToUse);
       
-      // Clear cart after successful order
-      clearCart();
+      console.log('Payment processed:', result);
       
-      // Show order confirmation
-      setOrderComplete(true);
+      if (result.success) {
+        // STEP 3: Save the order to Firebase
+        console.log('Saving order to database...');
+        try {
+          const response = await fetch('/api/save-order', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              paymentIntentId: result.paymentIntentId,
+              customerInfo,
+              deliveryInfo,
+              cartItems: cart.items
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.text();
+            console.error('Server error:', errorData);
+            throw new Error(`Server error: ${response.status} ${errorData}`);
+          }
+
+          const orderData = await response.json();
+          console.log('Order saved successfully:', orderData);
+          
+          // Clear the cart
+          cart.clearCart();
+          
+          // Show success message and redirect to confirmation page
+          setPaymentStatus('success');
+          setOrderId(orderData.orderId);
+          
+          // Redirect to confirmation page
+          navigate('/confirmation', { 
+            state: { 
+              orderId: orderData.orderId,
+              orderDetails: orderData.orderDetails
+            } 
+          });
+          
+          return true;
+        } catch (error) {
+          console.error('Error saving order to database:', error);
+          setPaymentStatus('error');
+          setPaymentError(`Error saving order: ${error.message}`);
+          return false;
+        }
+      } else {
+        setPaymentError('Payment processing failed. Please try again.');
+      }
+      
       setIsProcessing(false);
     } catch (error) {
       console.error('Error placing order:', error);
-      setPaymentError('An error occurred while processing your payment. Please try again.');
+      setPaymentError(`An error occurred while processing your payment: ${error.message}`);
       setIsProcessing(false);
     }
   };
