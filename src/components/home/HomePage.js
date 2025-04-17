@@ -1,7 +1,7 @@
 import React from 'react';
 import HeroSection from './HeroSection';
 import FeaturedRentals from '../rentals/FeaturedRentals';
-import PartyPackages from '../packages/PartyPackages';
+import AboutSection from './AboutSection';
 import WhyChooseUs from './WhyChooseUs';
 import Testimonials from './Testimonials';
 import HowItWorks from './HowItWorks';
@@ -14,7 +14,7 @@ const HomePage = () => {
     <main>
       <HeroSection />
       <FeaturedRentals />
-      <PartyPackages />
+      <AboutSection />
       <WhyChooseUs />
       <Testimonials />
       <HowItWorks />
