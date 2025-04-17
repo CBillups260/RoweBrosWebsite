@@ -23,6 +23,7 @@ import './styles/pages.css'; // Import internal pages styles
 import './styles/faq.css'; // Import FAQ styles
 import './styles/faq-page.css'; // Import FAQ page styles
 import Header from './components/layout/Header';
+import ScrollToTop from './components/layout/ScrollToTop';
 import Footer from './components/layout/Footer';
 import AnnouncementBar from './components/layout/AnnouncementBar';
 import HomePage from './components/home/HomePage';
@@ -42,6 +43,7 @@ import { AuthProvider } from './context/AuthContext';
 import AboutPage from './components/pages/AboutPage';
 import PrivacyPolicy from './components/pages/PrivacyPolicy';
 import TermsOfService from './components/pages/TermsOfService';
+import SitemapPage from './components/pages/SitemapPage';
 import ContactPage from './components/pages/ContactPage';
 import FaqPage from './components/pages/FaqPage';
 
@@ -50,6 +52,7 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <Router>
+          <ScrollToTop />
           <div className="App">
             <Routes>
               {/* Admin routes */}
@@ -91,6 +94,7 @@ function App() {
                       <Route path="/about" element={<AboutPage />} />
                       <Route path="/privacy" element={<PrivacyPolicy />} />
                       <Route path="/terms" element={<TermsOfService />} />
+                      <Route path="/sitemap" element={<SitemapPage />} />
                       <Route path="/contact" element={<ContactPage />} />
                       <Route path="/faq" element={<FaqPage />} />
                       <Route path="*" element={<Navigate to="/" replace />} />

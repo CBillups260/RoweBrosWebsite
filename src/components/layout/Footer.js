@@ -55,12 +55,11 @@ const Footer = () => {
             <div className="footer-column">
               <h4>Rental Categories</h4>
               <ul className="footer-links">
-                <li><Link to="/rentals/bounce-houses">Bounce Houses</Link></li>
-                <li><Link to="/rentals/water-slides">Water Slides</Link></li>
-                <li><Link to="/rentals/obstacle-courses">Obstacle Courses</Link></li>
-                <li><Link to="/rentals/combo-units">Combo Units</Link></li>
-                <li><Link to="/rentals/concessions">Concessions</Link></li>
-                <li><Link to="/rentals/tables-chairs">Tables & Chairs</Link></li>
+                <li><Link to="/rentals">All Rentals</Link></li>
+                <li><Link to="/rentals#water">Water</Link></li>
+                <li><Link to="/rentals#combo">Combo</Link></li>
+                <li><Link to="/rentals#slide">Slide</Link></li>
+                <li><Link to="/rentals#obstacle">Obstacle</Link></li>
               </ul>
             </div>
             
@@ -108,7 +107,7 @@ const Footer = () => {
             <Link to="/privacy">Privacy Policy</Link>
             <Link to="/terms">Terms of Service</Link>
             <Link to="/sitemap">Sitemap</Link>
-            <Link to="/admin">Staff Login</Link>
+            <Link to="/admin/login">Staff Login</Link>
           </div>
         </div>
       </div>

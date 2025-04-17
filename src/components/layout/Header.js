@@ -265,7 +265,7 @@ const Header = () => {
                 <FontAwesomeIcon icon={faTimes} />
               </button>
             </li>
-            <li className="location-dropdown">
+            <li className={`location-dropdown ${locationDropdownActive ? 'active' : ''}`}>
               <div className="location-button" onClick={toggleLocationDropdown}>
                 <FontAwesomeIcon icon={faMapMarkerAlt} />
                 <span>{currentLocation}</span>
