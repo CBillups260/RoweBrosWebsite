@@ -11,6 +11,7 @@ import {
   faShoppingBag
 } from '@fortawesome/free-solid-svg-icons';
 import { useCart } from '../../context/CartContext';
+import PlaceholderImage from '../common/PlaceholderImage';
 import '../../styles/cart.css';
 
 const Cart = ({ isOpen, toggleCart }) => {
@@ -135,7 +136,11 @@ const Cart = ({ isOpen, toggleCart }) => {
               {cart.items.map((item, index) => (
                 <div key={`${item.id}-${item.bookingId}-${index}`} className="cart-item">
                   <div className="cart-item-image">
-                    <img src={item.mainImage || item.image} alt={item.name} />
+                    {item.mainImage ? (
+                      <img src={item.mainImage} alt={item.name} />
+                    ) : (
+                      <PlaceholderImage alt={item.name} />
+                    )}
                   </div>
                   <div className="cart-item-content">
                     <div className="cart-item-details">
