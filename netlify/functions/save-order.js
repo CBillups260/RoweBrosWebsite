@@ -11,6 +11,18 @@ if (!admin.apps.length) {
     console.log('FIREBASE_PRIVATE_KEY exists:', !!process.env.FIREBASE_PRIVATE_KEY);
     console.log('FIREBASE_PRIVATE_KEY length:', process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.length : 0);
     
+    // Extract environment variables with fallbacks to hardcoded values
+    const projectId = process.env.FIREBASE_PROJECT_ID || 'rowebros-156a6';
+    
+    // Ensure client_email is a proper string value
+    let clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    if (!clientEmail) {
+      clientEmail = 'firebase-adminsdk-fbsvc@rowebros-156a6.iam.gserviceaccount.com';
+      console.log('Using fallback client_email:', clientEmail);
+    } else {
+      console.log('Using environment variable client_email with length:', clientEmail.length);
+    }
+    
     // Handle private key with special attention to formatting
     let privateKey = process.env.FIREBASE_PRIVATE_KEY || '';
     
@@ -28,13 +40,30 @@ if (!admin.apps.length) {
     console.log('Private key format check - starts with -----BEGIN PRIVATE KEY-----:', privateKey.trim().startsWith('-----BEGIN PRIVATE KEY-----'));
     console.log('Private key format check - ends with -----END PRIVATE KEY-----:', privateKey.trim().endsWith('-----END PRIVATE KEY-----'));
     
+    // Final verification of credentials
+    if (!projectId) {
+      throw new Error('FIREBASE_PROJECT_ID is missing or empty');
+    }
+    
+    if (!clientEmail) {
+      throw new Error('FIREBASE_CLIENT_EMAIL is missing or empty');
+    }
+    
+    // Create an explicit service account object
+    const serviceAccount = {
+      projectId: projectId,
+      clientEmail: clientEmail,
+      privateKey: privateKey
+    };
+    
+    // Verify all credentials
+    console.log('Service account object has projectId:', !!serviceAccount.projectId);
+    console.log('Service account object has clientEmail:', !!serviceAccount.clientEmail);
+    console.log('Service account object has privateKey:', !!serviceAccount.privateKey);
+    
     // Initialize the app with credentials
     admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: privateKey
-      })
+      credential: admin.credential.cert(serviceAccount)
     });
     
     console.log('Firebase Admin SDK initialized successfully');
