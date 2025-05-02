@@ -26,6 +26,7 @@ import {
 } from '../../services/stripeService';
 import { auth } from '../../firebase';
 import '../../styles/checkout.css';
+import PlaceholderImage from '../common/PlaceholderImage';
 
 // Stripe Card Element styles
 const cardElementOptions = {
@@ -160,21 +161,110 @@ const CheckoutPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('');
+  const [deliveryFee, setDeliveryFee] = useState(50); // Default delivery fee
+  const [selectedBranch, setSelectedBranch] = useState('');
+  const [mileageDistance, setMileageDistance] = useState(0);
+  const [feeCalculated, setFeeCalculated] = useState(false); // Track if delivery fee has been calculated
   
-  // Define service areas
+  // Define service areas with approximate distance in miles from each branch
   const serviceAreas = [
-    { city: 'Elkhart', state: 'IN', zip: '46514' },
-    { city: 'Elkhart', state: 'IN', zip: '46516' },
-    { city: 'Elkhart', state: 'IN', zip: '46517' },
-    { city: 'Angola', state: 'IN', zip: '46703' },
-    { city: 'Goshen', state: 'IN', zip: '46526' },
-    { city: 'Middlebury', state: 'IN', zip: '46540' },
-    { city: 'Bristol', state: 'IN', zip: '46507' },
-    { city: 'Mishawaka', state: 'IN', zip: '46544' },
-    { city: 'South Bend', state: 'IN', zip: '46601' },
-    { city: 'Sturgis', state: 'MI', zip: '49091' },
-    { city: 'Three Rivers', state: 'MI', zip: '49093' }
+    // Elkhart area
+    { city: 'Elkhart', state: 'IN', zip: '46514', distances: { elkhart: 3, angola: 75 } },
+    { city: 'Elkhart', state: 'IN', zip: '46516', distances: { elkhart: 1, angola: 70 } },
+    { city: 'Elkhart', state: 'IN', zip: '46517', distances: { elkhart: 5, angola: 77 } },
+    { city: 'Goshen', state: 'IN', zip: '46526', distances: { elkhart: 12, angola: 82 } },
+    { city: 'Middlebury', state: 'IN', zip: '46540', distances: { elkhart: 18, angola: 60 } },
+    { city: 'Bristol', state: 'IN', zip: '46507', distances: { elkhart: 14, angola: 64 } },
+    { city: 'Mishawaka', state: 'IN', zip: '46544', distances: { elkhart: 25, angola: 95 } },
+    { city: 'South Bend', state: 'IN', zip: '46601', distances: { elkhart: 28, angola: 100 } },
+    { city: 'Nappanee', state: 'IN', zip: '46550', distances: { elkhart: 22, angola: 88 } },
+    { city: 'Wakarusa', state: 'IN', zip: '46573', distances: { elkhart: 15, angola: 87 } },
+    { city: 'Edwardsburg', state: 'MI', zip: '49112', distances: { elkhart: 12, angola: 80 } },
+    { city: 'Cassopolis', state: 'MI', zip: '49031', distances: { elkhart: 25, angola: 91 } },
+    { city: 'Constantine', state: 'MI', zip: '49042', distances: { elkhart: 25, angola: 48 } },
+    
+    // Angola area
+    { city: 'Angola', state: 'IN', zip: '46703', distances: { elkhart: 70, angola: 3 } },
+    { city: 'Sturgis', state: 'MI', zip: '49091', distances: { elkhart: 40, angola: 30 } },
+    { city: 'Three Rivers', state: 'MI', zip: '49093', distances: { elkhart: 55, angola: 40 } },
+    { city: 'Coldwater', state: 'MI', zip: '49036', distances: { elkhart: 65, angola: 25 } },
+    { city: 'LaGrange', state: 'IN', zip: '46761', distances: { elkhart: 28, angola: 25 } },
+    { city: 'Auburn', state: 'IN', zip: '46706', distances: { elkhart: 60, angola: 18 } },
+    { city: 'Kendallville', state: 'IN', zip: '46755', distances: { elkhart: 45, angola: 22 } },
+    { city: 'Butler', state: 'IN', zip: '46721', distances: { elkhart: 70, angola: 25 } },
+    { city: 'Waterloo', state: 'IN', zip: '46793', distances: { elkhart: 64, angola: 20 } },
+    { city: 'Hamilton', state: 'IN', zip: '46742', distances: { elkhart: 75, angola: 12 } },
+    { city: 'Fremont', state: 'IN', zip: '46737', distances: { elkhart: 82, angola: 10 } },
+    { city: 'Hudson', state: 'IN', zip: '46747', distances: { elkhart: 68, angola: 15 } },
+    { city: 'Orland', state: 'IN', zip: '46776', distances: { elkhart: 45, angola: 12 } },
+    { city: 'Pleasant Lake', state: 'IN', zip: '46779', distances: { elkhart: 65, angola: 8 } },
+    { city: 'Rome City', state: 'IN', zip: '46784', distances: { elkhart: 35, angola: 25 } },
+    
+    // Additional locations within 25 miles of both centers
+    { city: 'White Pigeon', state: 'MI', zip: '49099', distances: { elkhart: 22, angola: 35 } },
+    { city: 'Howe', state: 'IN', zip: '46746', distances: { elkhart: 24, angola: 23 } },
+    { city: 'Shipshewana', state: 'IN', zip: '46565', distances: { elkhart: 25, angola: 35 } },
+    { city: 'Topeka', state: 'IN', zip: '46571', distances: { elkhart: 27, angola: 40 } },
+    { city: 'Wolcottville', state: 'IN', zip: '46795', distances: { elkhart: 33, angola: 21 } },
+    { city: 'Albion', state: 'IN', zip: '46701', distances: { elkhart: 40, angola: 25 } }
   ];
+  
+  // Branch locations
+  const branchLocations = {
+    angola: {
+      address: '15 Kodak Ln',
+      city: 'Angola',
+      state: 'IN',
+      zip: '46703'
+    },
+    elkhart: {
+      address: '56551 Mars Dr',
+      city: 'Elkhart',
+      state: 'IN',
+      zip: '46516'
+    }
+  };
+
+  // Calculate delivery fee based on mileage
+  const calculateMileageBasedFee = (distanceInMiles) => {
+    // Simple $2 per mile calculation with a minimum fee of $20
+    const calculatedFee = Math.ceil(distanceInMiles * 2);
+    return Math.max(calculatedFee, 20); // Ensure minimum fee of $20
+  };
+
+  // Delivery fee calculation based on mileage from the closest branch
+  const calculateDeliveryFee = (city, zipCode) => {
+    // Find the service area in our database
+    const area = serviceAreas.find(area => 
+      area.city.toLowerCase() === city.toLowerCase() && area.zip === zipCode
+    );
+    
+    if (!area) {
+      setMileageDistance(0);
+      setFeeCalculated(false); // Reset flag if area not found
+      return 50; // Default delivery fee if area not found
+    }
+    
+    // Get distances from both branches
+    const elkhart_distance = area.distances.elkhart;
+    const angola_distance = area.distances.angola;
+    
+    // Determine which branch is closer
+    const closerBranch = elkhart_distance <= angola_distance ? 'elkhart' : 'angola';
+    const distance = Math.min(elkhart_distance, angola_distance);
+    
+    // Set the selected branch and distance for display purposes
+    setSelectedBranch(closerBranch);
+    setMileageDistance(distance);
+    
+    // Calculate fee based on mileage
+    const fee = calculateMileageBasedFee(distance);
+    
+    // Set fee calculated flag to true
+    setFeeCalculated(true);
+    
+    return fee;
+  };
   
   // Form states
   const [customerInfo, setCustomerInfo] = useState({
@@ -204,6 +294,21 @@ const CheckoutPage = () => {
   });
   
   const [errors, setErrors] = useState({});
+  
+  // Add new state for liability waiver
+  const [liabilityWaiver, setLiabilityWaiver] = useState({
+    termsAgreed: false,
+    purchaseDamageWaiver: false
+  });
+
+  // Add handler for liability waiver inputs
+  const handleLiabilityWaiverChange = (e) => {
+    const { name, checked } = e.target;
+    setLiabilityWaiver({
+      ...liabilityWaiver,
+      [name]: checked
+    });
+  };
   
   useEffect(() => {
     // Check if user is coming as a guest
@@ -299,6 +404,15 @@ const CheckoutPage = () => {
     
     setDeliveryInfo(updatedDeliveryInfo);
     
+    // Calculate delivery fee when both city and zip code are selected
+    if (updatedDeliveryInfo.city && updatedDeliveryInfo.zipCode) {
+      const fee = calculateDeliveryFee(updatedDeliveryInfo.city, updatedDeliveryInfo.zipCode);
+      setDeliveryFee(fee);
+    } else {
+      // Reset fee calculated flag if either city or zip is not set
+      setFeeCalculated(false);
+    }
+    
     // Clear error for this field if it exists
     if (errors[name]) {
       setErrors({
@@ -345,8 +459,13 @@ const CheckoutPage = () => {
         if (!deliveryInfo.deliveryDate) newErrors.deliveryDate = 'Delivery date is required';
         if (!deliveryInfo.deliveryTime) newErrors.deliveryTime = 'Delivery time is required';
       }
-      
+
+      // Add validation for liability waiver step
       if (step === 3) {
+        if (!liabilityWaiver.termsAgreed) newErrors.termsAgreed = 'You must agree to the terms and conditions';
+      }
+      
+      if (step === 4) {
         if (!paymentInfo.cardHolder) newErrors.cardHolder = 'Card holder name is required';
         // Only check paymentMethod on the final submission
         // if (!paymentMethod) newErrors.cardElement = 'Please enter valid card details';
@@ -464,8 +583,9 @@ const CheckoutPage = () => {
       const deliveryForStripe = buildDeliveryInfoForStripe(deliveryInfo);
       console.log('[CheckoutPage] Delivery info being sent to Stripe:', deliveryForStripe);
       
-      // Calculate total amount in cents
-      const amount = Math.round((cart.total + 50 + (cart.total * 0.07)) * 100);
+      // Calculate total amount in cents with damage waiver if selected
+      const damageWaiverAmount = liabilityWaiver.purchaseDamageWaiver ? cart.total * 0.1 : 0;
+      const amount = Math.round((cart.total + damageWaiverAmount + 50 + (cart.total * 0.07)) * 100);
       
       const { clientSecret, paymentIntentId } = await createPaymentIntent(
         amount,
@@ -495,7 +615,9 @@ const CheckoutPage = () => {
               paymentIntentId: result.paymentIntentId,
               customerInfo,
               deliveryInfo,
-              cartItems: cart.items
+              cartItems: cart.items,
+              liabilityWaiver,
+              damageWaiverCost: damageWaiverAmount,
             }),
           });
 
@@ -549,8 +671,10 @@ const CheckoutPage = () => {
       case 2:
         return renderDeliveryInfoForm();
       case 3:
-        return renderPaymentForm();
+        return renderLiabilityWaiverForm();
       case 4:
+        return renderPaymentForm();
+      case 5:
         return renderOrderReview();
       default:
         return null;
@@ -636,7 +760,7 @@ const CheckoutPage = () => {
         <h2>Delivery Information</h2>
         <div className="service-area-notice">
           <FontAwesomeIcon icon={faTruck} />
-          <p>We currently serve Elkhart, IN and Angola, IN and surrounding areas only.</p>
+          <p>We currently serve Elkhart, IN and Angola, IN and surrounding areas. Delivery fees are calculated based on mileage.</p>
         </div>
         <div className="form-grid">
           <div className="form-group full-width">
@@ -785,6 +909,67 @@ const CheckoutPage = () => {
     );
   };
   
+  const renderLiabilityWaiverForm = () => {
+    const damageWaiverCost = (cart.total * 0.1).toFixed(2);
+    
+    return (
+      <div className="form-section">
+        <h2>Liability Waiver</h2>
+        
+        <div className="waiver-container">
+          <div className="waiver-text">
+            <p>By checking this box, I acknowledge that I understand and agree to the following:</p>
+            <p>If anything happens to the products provided, I am responsible for the products. I agree to Rowe Bros' terms and conditions.</p>
+          </div>
+          
+          <div className="waiver-acceptance">
+            <div className="form-group checkbox-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="termsAgreed"
+                  checked={liabilityWaiver.termsAgreed}
+                  onChange={handleLiabilityWaiverChange}
+                />
+                <span>I agree to the terms and conditions</span>
+              </label>
+              {errors.termsAgreed && <div className="input-error">{errors.termsAgreed}</div>}
+            </div>
+          </div>
+          
+          <div className="damage-waiver-container">
+            <h3>Damage Waiver Option</h3>
+            <p>Would you like to purchase our Damage Waiver? For 10% of your total rental costs (${damageWaiverCost}), we will waive any damage that happens to our equipment during your possession of said equipment, excluding intentional damage or theft.</p>
+            
+            <div className="form-group checkbox-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="purchaseDamageWaiver"
+                  checked={liabilityWaiver.purchaseDamageWaiver}
+                  onChange={handleLiabilityWaiverChange}
+                />
+                <span>Yes, I would like to purchase the Damage Waiver (10% - ${damageWaiverCost})</span>
+              </label>
+            </div>
+          </div>
+          
+          <div className="additional-info">
+            <div className="info-box">
+              <h4>Important Information</h4>
+              <ul>
+                <li>Please note that we do require a Minimum Payment up front upon checkout that is not refundable, but will be credited toward the full balance.</li>
+                <li>If you cancel within the 7 days prior to the event, we will retain that Minimum Payment in a Raincheck, good for one full year toward a future event.</li>
+                <li>If you cancel before the 7 days leading up to the Event, your full balance can be refunded or placed in a Raincheck, whichever you prefer.</li>
+                <li>Please note that we do require electricity per unit within 50' of the setup area.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
   const renderPaymentForm = () => {
     return (
       <div className="form-section">
@@ -840,6 +1025,20 @@ const CheckoutPage = () => {
               {deliveryInfo.deliveryInstructions && (
                 <p><strong>Instructions:</strong> {deliveryInfo.deliveryInstructions}</p>
               )}
+              {selectedBranch && (
+                <p><strong>Serving Branch:</strong> {branchLocations[selectedBranch].city} ({branchLocations[selectedBranch].address}) - {mileageDistance} miles away</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="review-section">
+            <h3>Liability & Damage Waiver</h3>
+            <div className="review-details">
+              <p><strong>Terms & Conditions:</strong> Agreed</p>
+              <p><strong>Damage Waiver:</strong> {liabilityWaiver.purchaseDamageWaiver ? 'Purchased' : 'Declined'}</p>
+              {liabilityWaiver.purchaseDamageWaiver && (
+                <p><strong>Damage Waiver Fee:</strong> ${(cart.total * 0.1).toFixed(2)} (10% of rental total)</p>
+              )}
             </div>
           </div>
           
@@ -856,6 +1055,43 @@ const CheckoutPage = () => {
                 <p>Card details will be collected at checkout</p>
               )}
             </div>
+          </div>
+        </div>
+        
+        <div className="order-totals review-totals">
+          <div className="order-subtotal">
+            <span>Subtotal</span>
+            <span>${cart.total.toFixed(2)}</span>
+          </div>
+          {liabilityWaiver.purchaseDamageWaiver && (
+            <div className="order-damage-waiver">
+              <span>Damage Waiver (10%)</span>
+              <span>${(cart.total * 0.1).toFixed(2)}</span>
+            </div>
+          )}
+          {feeCalculated && (
+            <div className="order-delivery">
+              <span>Delivery Fee ({mileageDistance} miles from {selectedBranch ? branchLocations[selectedBranch].city : 'nearest branch'})</span>
+              <span>${deliveryFee.toFixed(2)}</span>
+            </div>
+          )}
+          {!feeCalculated && activeStep >= 2 && (
+            <div className="delivery-fee-note">
+              <span>Delivery fee will be calculated when you enter your address</span>
+            </div>
+          )}
+          <div className="order-tax">
+            <span>Tax (7%)</span>
+            <span>${(cart.total * 0.07).toFixed(2)}</span>
+          </div>
+          <div className="order-total">
+            <span>Total</span>
+            <span>${(
+              cart.total + 
+              (feeCalculated ? deliveryFee : 0) + 
+              (cart.total * 0.07) + 
+              (liabilityWaiver.purchaseDamageWaiver ? cart.total * 0.1 : 0)
+            ).toFixed(2)}</span>
           </div>
         </div>
         
@@ -890,6 +1126,9 @@ const CheckoutPage = () => {
           <p>{deliveryInfo.city}, {deliveryInfo.state} {deliveryInfo.zipCode}</p>
           <p>Delivery Date: {new Date(deliveryInfo.deliveryDate).toLocaleDateString()}</p>
           <p>Delivery Time: {deliveryInfo.deliveryTime}</p>
+          {selectedBranch && (
+            <p>Serving Branch: {branchLocations[selectedBranch].city} ({branchLocations[selectedBranch].address}) - {mileageDistance} miles away</p>
+          )}
         </div>
         
         <div className="order-summary confirmation">
@@ -898,7 +1137,11 @@ const CheckoutPage = () => {
             {cart.items.map(item => (
               <div key={`${item.id}-${item.date}`} className="order-item">
                 <div className="item-image">
-                  <img src={item.mainImage || item.image || "https://via.placeholder.com/60x60"} alt={item.name} />
+                  {item.mainImage ? (
+                    <img src={item.mainImage} alt={item.name} />
+                  ) : (
+                    <PlaceholderImage alt={item.name} />
+                  )}
                 </div>
                 <div className="item-details">
                   <h4>{item.name}</h4>
@@ -915,17 +1158,30 @@ const CheckoutPage = () => {
               <span>Subtotal</span>
               <span>${cart.total.toFixed(2)}</span>
             </div>
-            <div className="order-delivery">
-              <span>Delivery Fee</span>
-              <span>$50.00</span>
-            </div>
+            {liabilityWaiver.purchaseDamageWaiver && (
+              <div className="order-damage-waiver">
+                <span>Damage Waiver (10%)</span>
+                <span>${(cart.total * 0.1).toFixed(2)}</span>
+              </div>
+            )}
+            {feeCalculated && (
+              <div className="order-delivery">
+                <span>Delivery Fee ({mileageDistance} miles from {selectedBranch ? branchLocations[selectedBranch].city : 'nearest branch'})</span>
+                <span>${deliveryFee.toFixed(2)}</span>
+              </div>
+            )}
             <div className="order-tax">
               <span>Tax (7%)</span>
               <span>${(cart.total * 0.07).toFixed(2)}</span>
             </div>
             <div className="order-total">
               <span>Total</span>
-              <span>${(cart.total + 50 + cart.total * 0.07).toFixed(2)}</span>
+              <span>${(
+                cart.total + 
+                (feeCalculated ? deliveryFee : 0) + 
+                (cart.total * 0.07) + 
+                (liabilityWaiver.purchaseDamageWaiver ? cart.total * 0.1 : 0)
+              ).toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -940,8 +1196,8 @@ const CheckoutPage = () => {
   };
 
   const renderNavigationButtons = () => {
-    // Only show navigation buttons if not on payment step (step 3)
-    if (activeStep === 3) {
+    // Only show navigation buttons if not on payment step (step 4)
+    if (activeStep === 4) {
       return null;
     }
     return (
@@ -952,7 +1208,7 @@ const CheckoutPage = () => {
           </button>
         )}
         
-        {activeStep < 4 ? (
+        {activeStep < 5 ? (
           <button onClick={goToNextStep} className="next-button" disabled={isProcessing}>
             Continue <FontAwesomeIcon icon={faChevronRight} />
           </button>
@@ -1014,11 +1270,16 @@ const CheckoutPage = () => {
               <div className="step-connector"></div>
               <div className={`step ${activeStep >= 3 ? 'active' : ''}`}>
                 <div className="step-number">3</div>
-                <div className="step-label">Payment</div>
+                <div className="step-label">Waiver</div>
               </div>
               <div className="step-connector"></div>
               <div className={`step ${activeStep >= 4 ? 'active' : ''}`}>
                 <div className="step-number">4</div>
+                <div className="step-label">Payment</div>
+              </div>
+              <div className="step-connector"></div>
+              <div className={`step ${activeStep >= 5 ? 'active' : ''}`}>
+                <div className="step-number">5</div>
                 <div className="step-label">Review</div>
               </div>
             </div>
@@ -1034,7 +1295,11 @@ const CheckoutPage = () => {
                   {cart.items.map(item => (
                     <div key={`${item.id}-${item.date}`} className="order-item">
                       <div className="item-image">
-                        <img src={item.mainImage || item.image || "https://via.placeholder.com/60x60"} alt={item.name} />
+                        {item.mainImage ? (
+                          <img src={item.mainImage} alt={item.name} />
+                        ) : (
+                          <PlaceholderImage alt={item.name} />
+                        )}
                       </div>
                       <div className="item-details">
                         <h4>{item.name}</h4>
@@ -1052,17 +1317,35 @@ const CheckoutPage = () => {
                     <span>Subtotal</span>
                     <span>${cart.total.toFixed(2)}</span>
                   </div>
-                  <div className="order-delivery">
-                    <span>Delivery Fee</span>
-                    <span>$50.00</span>
-                  </div>
+                  {liabilityWaiver.purchaseDamageWaiver && (
+                    <div className="order-damage-waiver">
+                      <span>Damage Waiver (10%)</span>
+                      <span>${(cart.total * 0.1).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {feeCalculated && (
+                    <div className="order-delivery">
+                      <span>Delivery Fee {mileageDistance > 0 ? `(${mileageDistance} miles)` : ''}</span>
+                      <span>${deliveryFee.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {!feeCalculated && activeStep >= 2 && (
+                    <div className="delivery-fee-note">
+                      <span>Delivery fee will be calculated when you enter your address</span>
+                    </div>
+                  )}
                   <div className="order-tax">
                     <span>Tax (7%)</span>
                     <span>${(cart.total * 0.07).toFixed(2)}</span>
                   </div>
                   <div className="order-total">
                     <span>Total</span>
-                    <span>${(cart.total + 50 + cart.total * 0.07).toFixed(2)}</span>
+                    <span>${(
+                      cart.total + 
+                      (feeCalculated ? deliveryFee : 0) + 
+                      (cart.total * 0.07) + 
+                      (liabilityWaiver.purchaseDamageWaiver ? cart.total * 0.1 : 0)
+                    ).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

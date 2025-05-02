@@ -13,95 +13,97 @@ import {
   faArrowRight 
 } from '@fortawesome/free-solid-svg-icons';
 import PlaceholderImage from '../common/PlaceholderImage';
+import { getProducts } from '../../services/productService';
+import { getCategories } from '../../services/categoryService';
 import '../../styles/rentals.css';
 
 const FeaturedRentals = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [expandedItem, setExpandedItem] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filteredRentals, setFilteredRentals] = useState([]);
 
-  // This would normally be fetched from an API
-  const rentalItems = [
-    // Elkhart Location
-    {
-      id: 1,
-      name: 'Blue Marble Combo',
-      price: '$175/day',
-      description: 'Exciting combo bounce house with slide and basketball hoop.',
-      dimensions: '15\' x 15\' x 15\'',
-      ageRange: 'Ages 3-12',
-      capacity: 'Up to 8 kids',
-      image: '/images/placeholders/blue-marble-combo.jpg',
-      category: 'combo',
-      popular: true,
-      location: 'Elkhart'
-    },
-    {
-      id: 3,
-      name: 'Tropical XL Dual Lane Combo',
-      price: '$225/day',
-      description: 'Tropical paradise with dual racing lanes and large bounce area.',
-      dimensions: '22\' x 20\' x 18\'',
-      ageRange: 'Ages 5-15',
-      capacity: 'Up to 12 kids',
-      image: '/images/placeholders/tropical-xl-dual-lane-combo.jpg',
-      category: 'combo',
-      popular: true,
-      location: 'Elkhart'
-    },
-    {
-      id: 5,
-      name: 'Rainbow Dual Lane Combo',
-      price: '$220/day',
-      description: 'Vibrant rainbow-themed combo with dual racing slides.',
-      dimensions: '21\' x 18\' x 17\'',
-      ageRange: 'Ages 4-14',
-      capacity: 'Up to 12 kids',
-      image: '/images/placeholders/rainbow-dual-lane-combo.jpg',
-      category: 'combo',
-      popular: true,
-      location: 'Elkhart'
-    },
-    // Angola Location
-    {
-      id: 6,
-      name: 'Sunrise Waterslide',
-      price: '$195/day',
-      description: 'Refreshing water slide with pool at the bottom for hot summer days.',
-      dimensions: '25\' x 12\' x 18\'',
-      ageRange: 'Ages 5-15',
-      capacity: 'Up to 8 kids',
-      image: '/images/placeholders/sunrise-waterslide.jpg',
-      category: 'slide',
-      popular: true,
-      location: 'Angola'
-    },
-    {
-      id: 7,
-      name: 'Dinosaur XL Dual Lane Combo',
-      price: '$235/day',
-      description: 'Prehistoric adventure with dual slides and dinosaur-themed bounce area.',
-      dimensions: '24\' x 20\' x 18\'',
-      ageRange: 'Ages 4-14',
-      capacity: 'Up to 12 kids',
-      image: '/images/placeholders/dinosaur-xl-dual-lane-combo.jpg',
-      category: 'combo',
-      popular: true,
-      location: 'Angola'
-    },
-    {
-      id: 10,
-      name: 'Palm Tree Waterslide',
-      price: '$210/day',
-      description: 'Tropical-themed water slide with splash pool and palm tree features.',
-      dimensions: '28\' x 15\' x 20\'',
-      ageRange: 'Ages 5-16',
-      capacity: 'Up to 10 kids',
-      image: '/images/placeholders/palm-tree-waterslide.jpg',
-      category: 'slide',
-      popular: true,
-      location: 'Angola'
+  // Fetch products from Firebase
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch products from Firebase
+        const productsData = await getProducts();
+        setProducts(productsData);
+        
+        // Fetch categories from Firebase
+        const categoriesData = await getCategories();
+        setCategories(categoriesData);
+        
+        // Convert Firebase products to the format expected by the UI
+        const formattedProducts = productsData
+          .filter(product => product.popular) // Only show popular products
+          .map(product => ({
+            id: product.id,
+            name: product.name,
+            price: `$${product.price}/day`,
+            description: product.description,
+            dimensions: product.dimensions || '',
+            ageRange: product.ageRange || '',
+            capacity: product.capacity || '',
+            image: product.images && product.images.length > 0 ? product.images[0].url : '',
+            category: product.categoryId,
+            popular: product.popular || false,
+            location: product.location || 'Elkhart'
+          }));
+        
+        setFilteredRentals(formattedProducts);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load products. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+
+  // Update filtered rentals when filter changes
+  useEffect(() => {
+    if (!products.length) return;
+    
+    let filtered = [...products];
+    
+    // Filter by category if not 'all'
+    if (activeFilter !== 'all') {
+      const categoryId = categories.find(cat => cat.name.toLowerCase() === activeFilter.toLowerCase())?.id;
+      
+      if (categoryId) {
+        filtered = filtered.filter(product => product.categoryId === categoryId);
+      }
     }
-  ];
+    
+    // Only show popular products
+    filtered = filtered.filter(product => product.popular);
+    
+    // Format products for display
+    const formattedProducts = filtered.map(product => ({
+      id: product.id,
+      name: product.name,
+      price: `$${product.price}/day`,
+      description: product.description,
+      dimensions: product.dimensions || '',
+      ageRange: product.ageRange || '',
+      capacity: product.capacity || '',
+      image: product.images && product.images.length > 0 ? product.images[0].url : '',
+      category: product.categoryId,
+      popular: product.popular || false,
+      location: product.location || 'Elkhart'
+    }));
+    
+    setFilteredRentals(formattedProducts);
+  }, [activeFilter, products, categories]);
 
   const handleFilterClick = (filter) => {
     setActiveFilter(filter);
@@ -117,9 +119,21 @@ const FeaturedRentals = () => {
     document.body.style.overflow = 'auto';
   };
 
-  const filteredRentals = rentalItems.filter(item => 
-    activeFilter === 'all' || item.category === activeFilter
-  );
+  // Get category names for filters
+  const getCategoryFilters = () => {
+    // Extract unique category names to create filter buttons
+    if (!categories.length) return [];
+    
+    // Get categories that have popular products
+    const popularCategoryIds = new Set(
+      products
+        .filter(product => product.popular)
+        .map(product => product.categoryId)
+    );
+    
+    // Return categories that have popular products
+    return categories.filter(category => popularCategoryIds.has(category.id));
+  };
 
   return (
     <section className="featured-rentals" id="featured-rentals">
@@ -132,36 +146,50 @@ const FeaturedRentals = () => {
           >
             All Rentals
           </button>
-          <button 
-            className={`filter-btn ${activeFilter === 'combo' ? 'active' : ''}`}
-            onClick={() => handleFilterClick('combo')}
-          >
-            Bounce House Combos
-          </button>
-          <button 
-            className={`filter-btn ${activeFilter === 'slide' ? 'active' : ''}`}
-            onClick={() => handleFilterClick('slide')}
-          >
-            Water Slides
-          </button>
-        </div>
-        <div className="featured-rentals-grid">
-          {filteredRentals.map(item => (
-            <div className="rental-card" key={item.id}>
-              <div className="rental-image">
-                <PlaceholderImage alt={item.name} />
-                <Link to={`/rentals/${item.id}`} className="view-details">
-                  View Details
-                </Link>
-              </div>
-              <div className="rental-info">
-                <h4>{item.name}</h4>
-                <p className="price">{item.price}</p>
-                <p>{item.description}</p>
-              </div>
-            </div>
+          {getCategoryFilters().map(category => (
+            <button
+              key={category.id}
+              className={`filter-btn ${activeFilter === category.name.toLowerCase() ? 'active' : ''}`}
+              onClick={() => handleFilterClick(category.name.toLowerCase())}
+            >
+              {category.name}
+            </button>
           ))}
         </div>
+        
+        {loading ? (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Loading featured rentals...</p>
+          </div>
+        ) : error ? (
+          <div className="error-message">
+            <p>{error}</p>
+          </div>
+        ) : (
+          <div className="featured-rentals-grid">
+            {filteredRentals.map(item => (
+              <div className="rental-card" key={item.id}>
+                <div className="rental-image">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} />
+                  ) : (
+                    <PlaceholderImage alt={item.name} />
+                  )}
+                  <Link to={`/rentals/${item.id}`} className="view-details">
+                    View Details
+                  </Link>
+                </div>
+                <div className="rental-info">
+                  <h4>{item.name}</h4>
+                  <p className="price">{item.price}</p>
+                  <p>{item.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
         <div className="view-all-container">
           <Link to="/rentals" className="view-all-button">
             View All Rentals <FontAwesomeIcon icon={faArrowRight} />

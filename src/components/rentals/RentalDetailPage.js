@@ -241,7 +241,11 @@ const RentalDetailPage = () => {
         <div className="rental-detail-grid">
           <div className="rental-images">
             <div className="main-image">
-              <PlaceholderImage alt={rental.name} />
+              {rental.images && rental.images.length > 0 ? (
+                <img src={rental.images[selectedImage].url} alt={rental.name} />
+              ) : (
+                <PlaceholderImage alt={rental.name} />
+              )}
             </div>
             <div className="thumbnail-images">
               {rental.images.map((image, index) => (
