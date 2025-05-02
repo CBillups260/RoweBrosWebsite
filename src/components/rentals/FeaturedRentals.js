@@ -26,6 +26,25 @@ const FeaturedRentals = () => {
   const [error, setError] = useState(null);
   const [filteredRentals, setFilteredRentals] = useState([]);
 
+  // Helper function to get first sentence of a description
+  const getShortDescription = (description) => {
+    if (!description) return '';
+    
+    // Match first sentence (ending with period, exclamation, question mark)
+    const match = description.match(/^(.*?[.!?])\s/);
+    
+    if (match) {
+      // Return first sentence + ellipsis
+      return match[1] + '...';
+    } else if (description.length > 100) {
+      // If no sentence found, truncate at 100 chars
+      return description.substring(0, 100).trim() + '...';
+    } else {
+      // If description is already short enough, return as is
+      return description;
+    }
+  };
+
   // Fetch products from Firebase
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +66,7 @@ const FeaturedRentals = () => {
             name: product.name,
             price: `$${product.price}/day`,
             description: product.description,
+            shortDescription: product.shortDescription || getShortDescription(product.description), // Use shortDescription if exists, otherwise generate one
             dimensions: product.dimensions || '',
             ageRange: product.ageRange || '',
             capacity: product.capacity || '',
@@ -93,6 +113,7 @@ const FeaturedRentals = () => {
       name: product.name,
       price: `$${product.price}/day`,
       description: product.description,
+      shortDescription: product.shortDescription || getShortDescription(product.description), // Use shortDescription if exists, otherwise generate one
       dimensions: product.dimensions || '',
       ageRange: product.ageRange || '',
       capacity: product.capacity || '',
@@ -183,7 +204,7 @@ const FeaturedRentals = () => {
                 <div className="rental-info">
                   <h4>{item.name}</h4>
                   <p className="price">{item.price}</p>
-                  <p>{item.description}</p>
+                  <p className="short-description">{item.shortDescription}</p>
                 </div>
               </div>
             ))}

@@ -100,8 +100,8 @@
 }
 
 .rental-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .ribbon {
@@ -121,7 +121,6 @@
 .rental-image {
   position: relative;
   overflow: hidden;
-  border-radius: 8px;
   height: 200px;
 }
 
@@ -129,7 +128,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.5s ease;
 }
 
 .rental-card:hover .rental-image img {
@@ -156,25 +155,30 @@
 }
 
 .rental-info {
-  padding: 15px;
+  padding: 1.5rem;
 }
 
 .rental-info h4 {
-  color: #333;
-  margin-bottom: 0.5rem;
-  font-size: 1.3rem;
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+  color: var(--dark);
 }
 
-.price {
-  color: #1E88E5;
-  font-weight: 600;
+.rental-info .price {
+  color: var(--primary);
+  font-weight: 700;
   margin-bottom: 0.5rem;
-  font-size: 1.1rem;
 }
 
-.rental-info p {
+.short-description {
   color: #555;
   margin-bottom: 1rem;
+  min-height: 3em;
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .expanded-info {
