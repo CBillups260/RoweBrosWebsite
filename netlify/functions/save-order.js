@@ -11,14 +11,21 @@ if (!admin.apps.length) {
     console.log('FIREBASE_PRIVATE_KEY exists:', !!process.env.FIREBASE_PRIVATE_KEY);
     
     // For local development, use hardcoded values if environment variables are not available
-    const projectId = process.env.FIREBASE_PROJECT_ID || 'rowe-bros-website';
-    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || 'firebase-adminsdk-rlvr1@rowe-bros-website.iam.gserviceaccount.com';
+    const projectId = process.env.FIREBASE_PROJECT_ID || 'rowebros-156a6';
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || 'firebase-adminsdk-fbsvc@rowebros-156a6.iam.gserviceaccount.com';
     
-    // Properly parse the private key - this is a placeholder and will need to be replaced with the actual key
-    let privateKey = process.env.FIREBASE_PRIVATE_KEY;
-    if (privateKey) {
+    // Properly parse the private key
+    let privateKey;
+    if (process.env.FIREBASE_PRIVATE_KEY) {
       // Handle escaped newlines in the environment variable
-      privateKey = privateKey.replace(/\\n/g, '\n');
+      privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+    } else {
+      throw new Error('FIREBASE_PRIVATE_KEY environment variable is missing');
+    }
+    
+    // Verify we have all required credentials before initializing
+    if (!projectId || !clientEmail || !privateKey) {
+      throw new Error('Missing Firebase credentials. Make sure all environment variables are set correctly in Netlify.');
     }
     
     // Initialize the app with credentials
@@ -26,16 +33,17 @@ if (!admin.apps.length) {
       credential: admin.credential.cert({
         projectId: projectId,
         clientEmail: clientEmail,
-        // If privateKey is not available, the function will fail properly with a clear error
         privateKey: privateKey
-      }),
-      databaseURL: process.env.FIREBASE_DATABASE_URL
+      })
     });
     
     console.log('Firebase Admin SDK initialized successfully');
   } catch (error) {
-    console.error('Error initializing Firebase Admin SDK:', error);
-    throw error; // Re-throw to ensure the function fails properly
+    console.error('Error initializing Firebase Admin SDK:', error.message);
+    // Log the error but don't throw yet to provide more context
+    console.error('Please check that you have set the FIREBASE_PRIVATE_KEY, FIREBASE_PROJECT_ID, and FIREBASE_CLIENT_EMAIL environment variables in Netlify.');
+    console.error('You can find these credentials in your Firebase console under Project Settings > Service Accounts.');
+    throw error; // Now re-throw to ensure the function fails properly
   }
 }
 
