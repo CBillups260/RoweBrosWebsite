@@ -3,9 +3,69 @@ const admin = require('firebase-admin');
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault()
-  });
+  try {
+    // Log environment variables (without exposing sensitive data)
+    console.log('Firebase environment variables check:');
+    console.log('FIREBASE_PROJECT_ID exists:', !!process.env.FIREBASE_PROJECT_ID);
+    console.log('FIREBASE_CLIENT_EMAIL exists:', !!process.env.FIREBASE_CLIENT_EMAIL);
+    console.log('FIREBASE_PRIVATE_KEY exists:', !!process.env.FIREBASE_PRIVATE_KEY);
+    console.log('FIREBASE_PRIVATE_KEY length:', process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.length : 0);
+    
+    // Extract environment variables with fallbacks to hardcoded values
+    const projectId = process.env.FIREBASE_PROJECT_ID || 'rowebros-156a6';
+    
+    // Ensure client_email is a proper string value
+    let clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    if (!clientEmail) {
+      clientEmail = 'firebase-adminsdk-fbsvc@rowebros-156a6.iam.gserviceaccount.com';
+      console.log('Using fallback client_email:', clientEmail);
+    } else {
+      console.log('Using environment variable client_email with length:', clientEmail.length);
+    }
+    
+    // Handle private key with special attention to formatting
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY || '';
+    
+    // Private keys from environment variables often need special handling
+    // Check if it's a JSON string that needs parsing
+    if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+      privateKey = JSON.parse(privateKey);
+    }
+    
+    // Handle backslash escaped newlines
+    if (privateKey.includes('\\n')) {
+      privateKey = privateKey.replace(/\\n/g, '\n');
+    }
+    
+    console.log('Private key format check - starts with BEGIN:', privateKey.trim().startsWith('-----BEGIN PRIVATE KEY-----'));
+    console.log('Private key format check - ends with END:', privateKey.trim().endsWith('-----END PRIVATE KEY-----'));
+    
+    // Create an explicit service account object
+    const serviceAccount = {
+      projectId: projectId,
+      clientEmail: clientEmail,
+      privateKey: privateKey
+    };
+    
+    // Verify all credentials
+    console.log('Service account object has projectId:', !!serviceAccount.projectId);
+    console.log('Service account object has clientEmail:', !!serviceAccount.clientEmail);
+    console.log('Service account object has privateKey:', !!serviceAccount.privateKey);
+    
+    // Initialize the app with credentials
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    
+    console.log('Firebase Admin SDK initialized successfully');
+  } catch (error) {
+    console.error('Error initializing Firebase Admin SDK:', error.message);
+    if (error.message.includes('Failed to parse private key')) {
+      console.error('Private key parsing error. This usually means the key format is incorrect.');
+      console.error('Make sure the private key includes the BEGIN and END markers and all line breaks.');
+    }
+    throw error;
+  }
 }
 
 exports.handler = async (event) => {
