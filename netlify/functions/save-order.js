@@ -80,9 +80,27 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 exports.handler = async (event) => {
+  // CORS headers to allow cross-origin requests
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json'
+  };
+
+  // Handle preflight OPTIONS request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
+  }
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers,
       body: JSON.stringify({ error: 'Method not allowed' }),
     };
   }
@@ -102,6 +120,7 @@ exports.handler = async (event) => {
       console.error('Payment not successful:', paymentIntent?.status);
       return {
         statusCode: 400,
+        headers,
         body: JSON.stringify({ error: 'Payment not successful' }),
       };
     }
@@ -202,6 +221,7 @@ exports.handler = async (event) => {
     
     return {
       statusCode: 200,
+      headers,
       body: JSON.stringify({
         success: true,
         orderId,
@@ -216,6 +236,7 @@ exports.handler = async (event) => {
     console.error('Error saving order:', error);
     return {
       statusCode: 500,
+      headers,
       body: JSON.stringify({ 
         error: error.message,
         details: error.stack,
