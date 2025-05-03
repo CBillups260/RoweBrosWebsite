@@ -9,10 +9,27 @@ if (!admin.apps.length) {
 }
 
 exports.handler = async (event) => {
+  // CORS headers to allow cross-origin requests
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json'
+  };
+
+  // Handle preflight OPTIONS request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: ''
+    };
+  }
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
@@ -92,7 +109,7 @@ exports.handler = async (event) => {
     // Return the payment intent details
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         paymentIntentId: paymentIntent.id,
         clientSecret: paymentIntent.client_secret,
@@ -103,7 +120,7 @@ exports.handler = async (event) => {
     console.error('Error processing payment:', error);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ 
         error: error.message,
         details: error.stack

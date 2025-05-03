@@ -45,79 +45,142 @@ const calculateTotalAmount = (cart) => {
 
 // Create a payment intent and return client secret
 const createPaymentIntent = async (amount, customerInfo, deliveryInfo, cart) => {
-  try {
-    const metadata = {
-      cartItems: JSON.stringify(cart.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity
-      }))),
-      subtotal: cart.total,
-      deliveryFee: 50,
-      tax: cart.total * 0.07,
-      total: cart.total + 50 + (cart.total * 0.07)
-    };
+  const maxRetries = 3;
+  let retryCount = 0;
+  let lastError = null;
 
-    // Call our serverless function to create a payment intent
-    const response = await fetch('/.netlify/functions/create-payment-intent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        amount,
-        currency: 'usd',
-        customerInfo,
-        deliveryInfo,
-        metadata
-      }),
-    });
+  while (retryCount < maxRetries) {
+    try {
+      console.log(`Attempt ${retryCount + 1} to create payment intent`);
+      
+      const metadata = {
+        cartItems: JSON.stringify(cart.items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity
+        }))),
+        subtotal: cart.total,
+        deliveryFee: 50,
+        tax: cart.total * 0.07,
+        total: cart.total + 50 + (cart.total * 0.07)
+      };
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Payment intent creation failed:', errorText);
-      try {
-        // Try to parse as JSON if possible
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.error || 'Failed to create payment intent');
-      } catch (parseError) {
-        // If not JSON, throw with the text
-        throw new Error(`Failed to create payment intent: ${errorText.substring(0, 100)}...`);
+      // Call our serverless function to create a payment intent
+      const response = await fetch('/.netlify/functions/create-payment-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount,
+          currency: 'usd',
+          customerInfo,
+          deliveryInfo,
+          metadata
+        }),
+        // Add a longer timeout
+        signal: AbortSignal.timeout(15000) // 15 second timeout
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Payment intent creation failed (Attempt ${retryCount + 1}):`, errorText);
+        try {
+          // Try to parse as JSON if possible
+          const errorData = JSON.parse(errorText);
+          throw new Error(errorData.error || 'Failed to create payment intent');
+        } catch (parseError) {
+          // If not JSON, throw with the text
+          throw new Error(`Failed to create payment intent: ${errorText.substring(0, 100)}...`);
+        }
+      }
+
+      const data = await response.json();
+      console.log('Payment intent created successfully:', data);
+      return data;
+    } catch (error) {
+      lastError = error;
+      console.error(`Error creating payment intent (Attempt ${retryCount + 1}):`, error);
+      
+      // If it's a network error or timeout, retry
+      if (
+        error.name === 'TypeError' || 
+        error.name === 'AbortError' || 
+        error.message.includes('Failed to fetch')
+      ) {
+        retryCount++;
+        if (retryCount < maxRetries) {
+          // Wait before retrying (exponential backoff)
+          const delay = Math.pow(2, retryCount) * 1000;
+          console.log(`Retrying after ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+      } else {
+        // If it's not a network error, don't retry
+        break;
       }
     }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error creating payment intent:', error);
-    throw error;
   }
+  
+  // If we've exhausted all retries, throw the last error
+  throw lastError || new Error('Failed to create payment intent after multiple attempts');
 };
 
 // Process payment with payment method
 const processPayment = async (clientSecret, paymentMethod) => {
-  try {
-    const stripe = await getStripe();
-    
-    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: paymentMethod.id
-    });
+  const maxRetries = 2;
+  let retryCount = 0;
+  let lastError = null;
 
-    if (error) {
-      console.error('Payment confirmation error:', error);
-      throw error;
+  while (retryCount < maxRetries) {
+    try {
+      console.log(`Attempt ${retryCount + 1} to process payment`);
+      const stripe = await getStripe();
+      
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: paymentMethod.id
+      });
+
+      if (error) {
+        console.error(`Payment confirmation error (Attempt ${retryCount + 1}):`, error);
+        throw error;
+      }
+
+      console.log('Payment processed successfully:', paymentIntent);
+      return {
+        success: true,
+        paymentIntentId: paymentIntent.id,
+        status: paymentIntent.status
+      };
+    } catch (error) {
+      lastError = error;
+      console.error(`Error processing payment (Attempt ${retryCount + 1}):`, error);
+      
+      // If it's a network error, retry
+      if (
+        error.type === 'api_connection_error' || 
+        error.code === 'resource_missing' ||
+        error.message.includes('Failed to fetch')
+      ) {
+        retryCount++;
+        if (retryCount < maxRetries) {
+          // Wait before retrying
+          const delay = 2000; // 2 seconds
+          console.log(`Retrying after ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+      } else {
+        // If it's not a network error, don't retry
+        break;
+      }
     }
-
-    return {
-      success: true,
-      paymentIntentId: paymentIntent.id,
-      status: paymentIntent.status
-    };
-  } catch (error) {
-    console.error('Error processing payment:', error);
-    throw error;
   }
+  
+  // If we've exhausted all retries, throw the last error
+  throw lastError || new Error('Failed to process payment after multiple attempts');
 };
 
 // Get customer's payment methods
