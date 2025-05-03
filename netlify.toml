@@ -37,5 +37,14 @@
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["firebase-admin"]
-  [functions.timeout]
-    external_node_modules = ["firebase-admin"]
+  included_files = ["./serviceAccountKey.json"]
+  
+  # Increase function timeout from default 10s to 26s
+  [functions.saveOrder]
+    timeout = 26
+
+  [functions.createPaymentIntent]
+    timeout = 26
+  
+  [functions.processPayment]
+    timeout = 26
