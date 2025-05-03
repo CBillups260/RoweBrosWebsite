@@ -78,9 +78,7 @@ const createPaymentIntent = async (amount, customerInfo, deliveryInfo, cart) => 
           customerInfo,
           deliveryInfo,
           metadata
-        }),
-        // Add a longer timeout
-        signal: AbortSignal.timeout(15000) // 15 second timeout
+        })
       });
 
       if (!response.ok) {
@@ -106,7 +104,6 @@ const createPaymentIntent = async (amount, customerInfo, deliveryInfo, cart) => 
       // If it's a network error or timeout, retry
       if (
         error.name === 'TypeError' || 
-        error.name === 'AbortError' || 
         error.message.includes('Failed to fetch')
       ) {
         retryCount++;
