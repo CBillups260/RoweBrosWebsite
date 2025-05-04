@@ -70,7 +70,14 @@ const Footer = () => {
                   <FontAwesomeIcon icon={faMapMarkerAlt} />
                   <div>
                     <p>Angola Location</p>
-                    <address>123 Main St, Angola, IN 46703</address>
+                    <address>15 Kodak Ln, Angola, IN 46703</address>
+                  </div>
+                </li>
+                <li>
+                  <FontAwesomeIcon icon={faMapMarkerAlt} />
+                  <div>
+                    <p>Elkhart Location</p>
+                    <address>56551 Mars Dr, Elkhart, IN 46516</address>
                   </div>
                 </li>
                 <li>
