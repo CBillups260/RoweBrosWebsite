@@ -187,7 +187,7 @@ const Header = () => {
                 <div className="location-details">
                   <span className="location-name">{currentLocation}</span>
                   <span className="location-address">
-                    {currentLocation === 'Angola' ? '123 Main St, Angola, IN' : '456 Park Ave, Elkhart, IN'}
+                    {currentLocation === 'Angola' ? '15 Kodak Ln, Angola, IN 46703' : '56551 Mars Dr, Elkhart, IN 46516'}
                   </span>
                 </div>
               </div>
@@ -200,7 +200,7 @@ const Header = () => {
                   <FontAwesomeIcon icon={faMapMarkerAlt} />
                   <div className="location-details">
                     <span className="location-name">Angola</span>
-                    <span className="location-address">123 Main St, Angola, IN</span>
+                    <span className="location-address">15 Kodak Ln, Angola, IN 46703</span>
                   </div>
                 </a>
                 <a 
@@ -210,8 +210,8 @@ const Header = () => {
                 >
                   <FontAwesomeIcon icon={faMapMarkerAlt} />
                   <div className="location-details">
-                    <span className="location-name">Elkhart</span>
-                    <span className="location-address">456 Park Ave, Elkhart, IN</span>
+                    <span className="location-name">Elkhart (Casey)</span>
+                    <span className="location-address">56551 Mars Dr, Elkhart, IN 46516</span>
                   </div>
                 </a>
               </div>
@@ -282,7 +282,7 @@ const Header = () => {
                       <FontAwesomeIcon icon={faMapMarkerAlt} />
                       <div className="location-details">
                         <span className="location-name">Angola</span>
-                        <span className="location-address">123 Main St, Angola, IN</span>
+                        <span className="location-address">15 Kodak Ln, Angola, IN 46703</span>
                       </div>
                     </a>
                     <a 
@@ -292,8 +292,8 @@ const Header = () => {
                     >
                       <FontAwesomeIcon icon={faMapMarkerAlt} />
                       <div className="location-details">
-                        <span className="location-name">Elkhart</span>
-                        <span className="location-address">456 Park Ave, Elkhart, IN</span>
+                        <span className="location-name">Elkhart (Casey)</span>
+                        <span className="location-address">56551 Mars Dr, Elkhart, IN 46516</span>
                       </div>
                     </a>
                   </div>

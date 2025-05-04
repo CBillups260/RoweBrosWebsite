@@ -89,11 +89,11 @@ const ContactPage = () => {
                   <div className="locations">
                     <div className="location">
                       <p className="location-name">Angola</p>
-                      <address>123 Main St, Angola, IN 46703</address>
+                      <address>15 Kodak Ln, Angola, IN 46703</address>
                     </div>
                     <div className="location">
-                      <p className="location-name">Elkhart</p>
-                      <address>456 Park Ave, Elkhart, IN 46516</address>
+                      <p className="location-name">Elkhart (Casey)</p>
+                      <address>56551 Mars Dr, Elkhart, IN 46516</address>
                     </div>
                   </div>
                 </div>
@@ -116,7 +116,7 @@ const ContactPage = () => {
               <h3>Find Us</h3>
               <div className="map-container">
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d47586.35724882784!2d-84.95551127234487!3d41.63476576055336!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8815eba5a8ce27d3%3A0xfd9be9c940c4331d!2sAngola%2C%20IN%2046703!5e0!3m2!1sen!2sus!4v1649378647983!5m2!1sen!2sus" 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2982.1714487506705!2d-84.9985918!3d41.634494!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8815ebb4c0a9210d%3A0xd62a6bcf5cd5ca62!2s15%20Kodak%20Ln%2C%20Angola%2C%20IN%2046703!5e0!3m2!1sen!2sus!4v1651594929037!5m2!1sen!2sus" 
                   width="100%" 
                   height="300" 
                   style={{ border: 0 }} 
@@ -125,6 +125,28 @@ const ContactPage = () => {
                   referrerPolicy="no-referrer-when-downgrade"
                   title="RoweBros Angola Location"
                 ></iframe>
+              </div>
+              <div className="map-location-toggle" style={{ marginTop: '10px', textAlign: 'center' }}>
+                <button 
+                  onClick={() => {
+                    const mapFrame = document.querySelector('.map-container iframe');
+                    mapFrame.src = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2982.1714487506705!2d-84.9985918!3d41.634494!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8815ebb4c0a9210d%3A0xd62a6bcf5cd5ca62!2s15%20Kodak%20Ln%2C%20Angola%2C%20IN%2046703!5e0!3m2!1sen!2sus!4v1651594929037!5m2!1sen!2sus";
+                    mapFrame.title = "RoweBros Angola Location";
+                  }}
+                  style={{ marginRight: '10px', padding: '5px 10px', background: '#1E88E5', color: 'white', border: 'none', borderRadius: '4px' }}
+                >
+                  Show Angola Location
+                </button>
+                <button
+                  onClick={() => {
+                    const mapFrame = document.querySelector('.map-container iframe');
+                    mapFrame.src = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2963.0477123142235!2d-85.9737919!3d41.72282!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8816cd57c67c1ab9%3A0xfbc51e9bf7f3b09c!2s56551%20Mars%20Dr%2C%20Elkhart%2C%20IN%2046516!5e0!3m2!1sen!2sus!4v1651594989037!5m2!1sen!2sus";
+                    mapFrame.title = "RoweBros Elkhart Location";
+                  }}
+                  style={{ padding: '5px 10px', background: '#1E88E5', color: 'white', border: 'none', borderRadius: '4px' }}
+                >
+                  Show Elkhart Location
+                </button>
               </div>
             </div>
           </div>
