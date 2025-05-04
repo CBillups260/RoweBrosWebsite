@@ -6,13 +6,13 @@ const AboutSection = () => (
   <section id="about" className="about-section">
     <div className="container">
       <h2 className="section-title">About RoweBros</h2>
-      <p className="section-subtitle">Family-owned party rental service since 2018</p>
+      <p className="section-subtitle">Family-owned party rental service since 2023</p>
       
       <div className="about-content">
         <div className="about-text">
           <p>
             At RoweBros Party Rentals, we bring the celebration to your doorstep.
-            Family-owned and operated since 2018, we're committed to making
+            Founded by brothers Casey and Bobby Rowe in 2023, we're committed to making
             affordable, high-quality party rentals accessible for every occasion.
           </p>
           <p>

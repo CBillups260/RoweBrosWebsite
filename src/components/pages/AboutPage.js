@@ -13,15 +13,15 @@ const AboutPage = () => {
           <h2>Our Story</h2>
           <div className="about-grid">
             <div className="about-text">
-              <p>RoweBros Party Rentals was founded in 2018 by the Rowe brothers, Chris and Mike, with a simple mission: to bring joy and excitement to parties and events throughout Indiana. What started as a small family business with just two bounce houses has grown into one of the region's premier party rental companies.</p>
+              <p>RoweBros Party Rentals was founded in 2023 by two brothers, Casey Rowe and Bobby Rowe, with a simple mission: to bring joy and excitement to parties and events throughout Indiana. What started as a small family business with just two bounce houses has grown into one of the region's premier party rental companies.</p>
               
-              <p>Growing up in Angola, the Rowe brothers always had a passion for bringing people together and creating memorable experiences. After noticing the lack of quality party rental options in the area, they decided to combine their entrepreneurial spirit with their love for celebrations.</p>
+              <p>Growing up in Indiana, the Rowe brothers always had a passion for bringing people together and creating memorable experiences. After noticing the lack of quality party rental options in the area, they decided to combine their entrepreneurial spirit with their love for celebrations.</p>
               
               <p>Today, RoweBros serves thousands of customers across multiple locations, but we still maintain the same family values and personal touch that we started with. Every rental, every delivery, and every customer interaction is handled with the same care and attention as if it were our own celebration.</p>
             </div>
             <div className="about-image">
               <img src="/images/founders.jpg" alt="The Rowe Brothers" className="founder-image" />
-              <p className="image-caption">Chris and Mike Rowe, Founders</p>
+              <p className="image-caption">Casey and Bobby Rowe, Founders</p>
             </div>
           </div>
         </section>
@@ -53,31 +53,10 @@ const AboutPage = () => {
           <div className="team-grid">
             <div className="team-member">
               <div className="member-image">
-                <img src="/images/founders.jpg" alt="Chris and Mike Rowe" />
+                <img src="/images/founders.jpg" alt="Casey and Bobby Rowe" />
               </div>
               <h3>The Rowe Brothers</h3>
               <p>Co-Founders</p>
-            </div>
-            <div className="team-member">
-              <div className="member-image">
-                <img src="/images/team-sarah.jpg" alt="Sarah Johnson" />
-              </div>
-              <h3>Sarah Johnson</h3>
-              <p>Customer Relations Manager</p>
-            </div>
-            <div className="team-member">
-              <div className="member-image">
-                <img src="/images/team-david.jpg" alt="David Thompson" />
-              </div>
-              <h3>David Thompson</h3>
-              <p>Logistics Coordinator</p>
-            </div>
-            <div className="team-member">
-              <div className="member-image">
-                <img src="/images/team-jennifer.jpg" alt="Jennifer Adams" />
-              </div>
-              <h3>Jennifer Adams</h3>
-              <p>Equipment Specialist</p>
             </div>
           </div>
         </section>
