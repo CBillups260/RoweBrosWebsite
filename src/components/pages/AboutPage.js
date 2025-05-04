@@ -53,10 +53,17 @@ const AboutPage = () => {
           <div className="team-grid">
             <div className="team-member">
               <div className="member-image">
-                <img src="/images/founders.jpg" alt="Casey and Bobby Rowe" />
+                <img src="/images/founders.jpg" alt="Casey Rowe" />
               </div>
-              <h3>The Rowe Brothers</h3>
-              <p>Co-Founders</p>
+              <h3>Casey Rowe</h3>
+              <p>Co-Founder</p>
+            </div>
+            <div className="team-member">
+              <div className="member-image">
+                <img src="/images/founders.jpg" alt="Bobby Rowe" />
+              </div>
+              <h3>Bobby Rowe</h3>
+              <p>Co-Founder</p>
             </div>
           </div>
         </section>
