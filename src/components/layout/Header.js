@@ -210,7 +210,7 @@ const Header = () => {
                 >
                   <FontAwesomeIcon icon={faMapMarkerAlt} />
                   <div className="location-details">
-                    <span className="location-name">Elkhart (Casey)</span>
+                    <span className="location-name">Elkhart</span>
                     <span className="location-address">56551 Mars Dr, Elkhart, IN 46516</span>
                   </div>
                 </a>
@@ -288,11 +288,11 @@ const Header = () => {
                     <a 
                       href="#" 
                       className={`location-option ${currentLocation === 'Elkhart' ? 'active' : ''}`}
-                      onClick={() => changeLocation('Elkhart')}
+                      onClick={() => { changeLocation('Elkhart'); setMobileMenuActive(false); }}
                     >
                       <FontAwesomeIcon icon={faMapMarkerAlt} />
                       <div className="location-details">
-                        <span className="location-name">Elkhart (Casey)</span>
+                        <span className="location-name">Elkhart</span>
                         <span className="location-address">56551 Mars Dr, Elkhart, IN 46516</span>
                       </div>
                     </a>

@@ -92,7 +92,7 @@ const ContactPage = () => {
                       <address>15 Kodak Ln, Angola, IN 46703</address>
                     </div>
                     <div className="location">
-                      <p className="location-name">Elkhart (Casey)</p>
+                      <p className="location-name">Elkhart</p>
                       <address>56551 Mars Dr, Elkhart, IN 46516</address>
                     </div>
                   </div>
